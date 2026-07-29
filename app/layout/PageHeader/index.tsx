@@ -4,7 +4,13 @@ import React from "react";
 import { PageHeader, Button } from "@primer/react";
 import { RocketIcon } from "@primer/octicons-react";
 
-export default function Header() {
+type HeaderParams = {
+  title: string;
+  subtitle?: string;
+  actions?: boolean;
+};
+
+export default function Header({ title, subtitle, actions }: HeaderParams) {
   return (
     <div className="w-full px-20 py-10 sm:py-16">
       <PageHeader role="banner" aria-label="Único Planner">
@@ -14,9 +20,7 @@ export default function Header() {
               <RocketIcon size={20} />
             </span>
           </PageHeader.LeadingVisual>
-          <PageHeader.Title as="h1">
-            Organize sua agenda em um só lugar
-          </PageHeader.Title>
+          <PageHeader.Title as="h1">{title}</PageHeader.Title>
         </PageHeader.TitleArea>
 
         <PageHeader.Description>
@@ -28,23 +32,22 @@ export default function Header() {
               }}
               className="font-semibold"
             >
-              Crie cronogramas, distribua tarefas e acompanhe o progresso de
-              cada turma em tempo real — tudo em uma interface simples e
-              objetiva.
+              {subtitle}
             </span>
           </div>
         </PageHeader.Description>
-
-        <PageHeader.Actions>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Button variant="danger" size="large">
-              Criar minha primeira agenda
-            </Button>
-            <Button variant="default" size="large">
-              Ver como funciona
-            </Button>
-          </div>
-        </PageHeader.Actions>
+        {actions && (
+          <PageHeader.Actions>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Button variant="danger" size="large">
+                Criar minha primeira agenda
+              </Button>
+              <Button variant="default" size="large">
+                Ver como funciona
+              </Button>
+            </div>
+          </PageHeader.Actions>
+        )}
       </PageHeader>
     </div>
   );

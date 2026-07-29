@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import "@primer/primitives/dist/css/functional/themes/light.css";
+import "@primer/primitives/dist/css/functional/themes/dark.css";
+import { BaseStyles, ThemeProvider } from "@primer/react";
 import "./globals.css";
+import Navbar from "@/app/layout/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,9 +29,21 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-light-theme="light"
+      data-dark-theme="dark"
+      data-color-mode="light"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider colorMode="light">
+          <BaseStyles>
+            <div>
+              <Navbar />
+              {children}
+            </div>
+          </BaseStyles>
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

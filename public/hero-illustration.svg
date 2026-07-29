@@ -1,0 +1,62 @@
+<svg width="480" height="380" viewBox="0 0 480 380" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="heroIllustrationTitle">
+  <title id="heroIllustrationTitle">Ilustração de uma agenda semanal com tarefas organizadas</title>
+
+  <circle cx="240" cy="190" r="180" fill="#FEF2F2" />
+  <circle cx="380" cy="80" r="34" fill="#FEE2E2" />
+  <circle cx="60" cy="300" r="26" fill="#FECACA" />
+
+  <g filter="none">
+    <rect x="70" y="56" width="340" height="270" rx="20" fill="#FFFFFF" stroke="#FCA5A5" stroke-width="2" />
+
+    <rect x="70" y="56" width="340" height="58" rx="20" fill="#DC2626" />
+    <rect x="70" y="94" width="340" height="20" fill="#DC2626" />
+
+    <rect x="98" y="40" width="10" height="34" rx="5" fill="#7F1D1D" />
+    <rect x="372" y="40" width="10" height="34" rx="5" fill="#7F1D1D" />
+
+    <text x="96" y="92" font-family="Arial, Helvetica, sans-serif" font-size="20" font-weight="700" fill="#FFFFFF">Agenda da turma</text>
+
+    <g font-family="Arial, Helvetica, sans-serif" font-size="11" font-weight="600" fill="#B91C1C">
+      <text x="100" y="132">SEG</text>
+      <text x="152" y="132">TER</text>
+      <text x="204" y="132">QUA</text>
+      <text x="256" y="132">QUI</text>
+      <text x="308" y="132">SEX</text>
+      <text x="360" y="132">SAB</text>
+    </g>
+
+    <g stroke="#FEE2E2" stroke-width="1">
+      <line x1="88" y1="142" x2="392" y2="142" />
+      <line x1="88" y1="176" x2="392" y2="176" />
+      <line x1="88" y1="210" x2="392" y2="210" />
+      <line x1="88" y1="244" x2="392" y2="244" />
+      <line x1="88" y1="278" x2="392" y2="278" />
+      <line x1="88" y1="300" x2="392" y2="300" />
+    </g>
+
+    <rect x="96" y="148" width="46" height="22" rx="6" fill="#FEE2E2" />
+    <rect x="200" y="148" width="46" height="22" rx="6" fill="#DC2626" />
+    <rect x="304" y="148" width="46" height="22" rx="6" fill="#FCA5A5" />
+
+    <rect x="148" y="182" width="46" height="22" rx="6" fill="#FCA5A5" />
+    <rect x="252" y="182" width="46" height="22" rx="6" fill="#FEE2E2" />
+    <rect x="356" y="182" width="30" height="22" rx="6" fill="#FEE2E2" />
+
+    <rect x="96" y="216" width="46" height="22" rx="6" fill="#FEE2E2" />
+    <rect x="200" y="216" width="46" height="22" rx="6" fill="#FCA5A5" />
+    <rect x="304" y="216" width="46" height="22" rx="6" fill="#DC2626" />
+
+    <rect x="148" y="250" width="46" height="22" rx="6" fill="#DC2626" />
+    <rect x="252" y="250" width="46" height="22" rx="6" fill="#FEE2E2" />
+  </g>
+
+  <g transform="translate(316 250)">
+    <circle cx="34" cy="34" r="34" fill="#DC2626" stroke="#FFFFFF" stroke-width="4" />
+    <path d="M20 34 L30 44 L48 22" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  </g>
+
+  <g transform="translate(30 150)">
+    <rect width="72" height="72" rx="18" fill="#FFFFFF" stroke="#FCA5A5" stroke-width="2" />
+    <path d="M18 38 L30 50 L54 24" stroke="#DC2626" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+  </g>
+</svg>

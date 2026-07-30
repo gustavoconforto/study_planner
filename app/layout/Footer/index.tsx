@@ -1,5 +1,3 @@
-import { Link, Text } from "@primer/react";
-
 export default function Footer() {
   return (
     <div className="w-full border-t border-red-100 px-20 flex items-center justify-between">
@@ -7,19 +5,19 @@ export default function Footer() {
         <span className="text-lg font-medium tracking-wider text-gray-700">
           Único<span className="font-extrabold text-red-600">planner</span>
         </span>
-        <Text as="p" size="small" className="max-w-xs text-(--fgColor-muted)">
+        <p className="max-w-xs text-sm text-muted-foreground">
           Cronogramas e tarefas organizados sem esforço.
-        </Text>
+        </p>
       </div>
 
       <span>
         Feito por{" "}
-        <Link
+        <a
           href="https://github.com/broccolinisoup"
           className="font-semibold"
         >
           Gustavo Conforto
-        </Link>
+        </a>
       </span>
     </div>
   );

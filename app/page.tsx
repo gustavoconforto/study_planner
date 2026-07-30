@@ -43,7 +43,7 @@ export default function Home() {
     <div className="w-full">
       <Header
         title="Organize sua agenda em um só lugar"
-        subtitle="Crie cronogramas, distribua tarefas e acompanhe o progresso de cada turma em tempo real — tudo em uma interface simples e objetiva."
+        subtitle="Crie cronogramas, distribua tarefas e acompanhe o progresso de cada turma em tempo real em uma interface simples e objetiva."
         actions={true}
       />
 

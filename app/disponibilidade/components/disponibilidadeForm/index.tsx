@@ -10,12 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, type ChangeEvent } from "react";
+import { useState } from "react";
 export default function DisponibilidadeForm() {
   const [diaDaSemana, setDiaDaSemana] = useState("segunda");
 
-  function handleSelectDiaDaSemana(event: ChangeEvent<HTMLSelectElement>) {
-    setDiaDaSemana(event.target.value);
+  function handleSelectDiaDaSemana(value: string | null) {
+    if (value) setDiaDaSemana(value);
   }
 
   const items = [
@@ -30,9 +30,10 @@ export default function DisponibilidadeForm() {
 
   return (
     <div className="flex flex-col gap-5">
+      {diaDaSemana}
       <Field>
         <FieldLabel>Seledione o dia</FieldLabel>
-        <Select items={items}>
+        <Select items={items} onValueChange={handleSelectDiaDaSemana}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Dia..." />
           </SelectTrigger>

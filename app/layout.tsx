@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
-import "@primer/primitives/dist/css/functional/themes/light.css";
-import "@primer/primitives/dist/css/functional/themes/dark.css";
-import { BaseStyles, ThemeProvider } from "@primer/react";
 import "./globals.css";
 import Navbar from "@/app/layout/Navbar";
 import { cn } from "@/lib/utils";
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,17 +32,20 @@ export default function RootLayout({
       data-light-theme="light"
       data-dark-theme="dark"
       data-color-mode="light"
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
+      className={cn(
+        "h-full",
+        "antialiased",
+        geistSans.variable,
+        geistMono.variable,
+        "font-sans",
+        inter.variable,
+      )}
     >
       <body className="min-h-full flex flex-col">
-        <ThemeProvider colorMode="light">
-          <BaseStyles>
-            <div>
-              <Navbar />
-              {children}
-            </div>
-          </BaseStyles>
-        </ThemeProvider>
+        <div>
+          <Navbar />
+          {children}
+        </div>
       </body>
     </html>
   );

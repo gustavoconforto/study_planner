@@ -1,25 +1,23 @@
-"use client";
-
 import Image from "next/image";
-import { Heading, Text, Button } from "@primer/react";
-import { CalendarIcon, ChecklistIcon, GraphIcon } from "@primer/octicons-react";
+import { RiCalendarLine, RiTaskLine, RiLineChartLine } from "@remixicon/react";
+import { Button } from "@/components/ui/button";
 import Header from "@/app/layout/PageHeader";
 import Footer from "@/app/layout/Footer";
 
 const features = [
   {
-    icon: CalendarIcon,
+    icon: RiCalendarLine,
     title: "Cronogramas inteligentes",
     description: "Monte agendas semanais ou mensais em poucos cliques.",
   },
   {
-    icon: ChecklistIcon,
+    icon: RiTaskLine,
     title: "Atribuição de tarefas",
     description:
       "Mantenha os estudos recorrentes para as provas bem como os deveres de casa diários atualizados.",
   },
   {
-    icon: GraphIcon,
+    icon: RiLineChartLine,
     title: "Acompanhamento em tempo real",
     description: "Veja seu progresso a qualquer momento.",
   },
@@ -62,9 +60,9 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col gap-6">
-            <Heading as="h2" variant="medium">
+            <h2 className="text-2xl font-semibold">
               Tudo o que você precisa para organizar a turma
-            </Heading>
+            </h2>
             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {features.map(({ icon: Icon, title, description }) => (
                 <div
@@ -74,26 +72,22 @@ export default function Home() {
                   <span className="flex size-9 items-center justify-center rounded-full bg-red-50 text-red-600">
                     <Icon size={18} />
                   </span>
-                  <Text as="p" weight="semibold" size="large">
-                    {title}
-                  </Text>
-                  <Text as="p" size="small" className="text-(--fgColor-muted)">
-                    {description}
-                  </Text>
+                  <p className="text-base font-semibold">{title}</p>
+                  <p className="text-sm text-muted-foreground">{description}</p>
                 </div>
               ))}
             </div>
 
             <div className="flex flex-col items-start gap-4 rounded-xl border border-red-100 bg-red-50 p-5 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex flex-col gap-1">
-                <Text as="p" weight="semibold" size="large">
+                <p className="text-base font-semibold">
                   Pronto para organizar sua próxima agenda?
-                </Text>
-                <Text as="p" size="small" className="text-(--fgColor-muted)">
+                </p>
+                <p className="text-sm text-muted-foreground">
                   Crie sua agenda em poucos minutos.
-                </Text>
+                </p>
               </div>
-              <Button variant="danger" size="large">
+              <Button variant="destructive" size="lg">
                 Começar agora
               </Button>
             </div>
@@ -102,9 +96,7 @@ export default function Home() {
 
         <div>
           <div className="flex flex-col gap-5 px-4">
-            <Heading as="h3" variant="small">
-              Como funciona
-            </Heading>
+            <h3 className="text-xl font-semibold">Como funciona</h3>
             <ol className="flex flex-col gap-5">
               {steps.map((step, index) => (
                 <li key={step.title} className="flex gap-3">
@@ -112,16 +104,10 @@ export default function Home() {
                     {index + 1}
                   </span>
                   <div className="flex flex-col gap-1">
-                    <Text as="p" weight="semibold" size="small">
-                      {step.title}
-                    </Text>
-                    <Text
-                      as="p"
-                      size="small"
-                      className="text-(--fgColor-muted)"
-                    >
+                    <p className="text-sm font-semibold">{step.title}</p>
+                    <p className="text-sm text-muted-foreground">
                       {step.description}
-                    </Text>
+                    </p>
                   </div>
                 </li>
               ))}

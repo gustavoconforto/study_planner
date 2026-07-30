@@ -1,8 +1,9 @@
+import { auth, currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { RiCalendarLine, RiTaskLine, RiLineChartLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
-import Header from "@/app/layout/PageHeader";
-import Footer from "@/app/layout/Footer";
+import Header from "@/src/app/layout/PageHeader";
+import Footer from "@/src/app/layout/Footer";
 
 const features = [
   {
@@ -38,11 +39,14 @@ const steps = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const user = await currentUser();
+  if (!user) return null;
+
   return (
     <div className="w-full">
       <Header
-        title="Organize sua agenda em um só lugar"
+        title={`Bem vindo(a) ${user.username}. Organize sua agenda em um só lugar`}
         subtitle="Crie cronogramas, distribua tarefas e acompanhe o progresso de cada turma em tempo real em uma interface simples e objetiva."
         actions={true}
       />

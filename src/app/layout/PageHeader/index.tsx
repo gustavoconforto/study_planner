@@ -1,4 +1,3 @@
-import { RiRocketLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
 
 type HeaderParams = {

@@ -4,43 +4,7 @@ import { RelativeTime } from "@primer/react";
 import { Table, DataTable } from "@primer/react/experimental";
 
 export default function DisponibilidadeData() {
-  return (
-    <Table.Container>
-      <Table.Title as="h2" id="repositories-default">
-        Repositories
-      </Table.Title>
-      <DataTable
-        aria-labelledby="repositories-default"
-        data={data}
-        columns={[
-          {
-            header: "Repository",
-            field: "name",
-            rowHeader: true,
-          },
-          {
-            header: "Type",
-            field: "type",
-          },
-          {
-            header: "Updated",
-            field: "updatedAt",
-            renderCell: (row) => {
-              return <RelativeTime date={new Date(row.updatedAt)} />;
-            },
-          },
-          {
-            header: "Dependabot",
-            field: "securityFeatures.dependabot",
-          },
-          {
-            header: "Code scanning",
-            field: "securityFeatures.codeScanning",
-          },
-        ]}
-      />
-    </Table.Container>
-  );
+  return <div>Table Content</div>;
 }
 
 const now = Date.now();

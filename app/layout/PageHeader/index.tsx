@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { PageHeader, Button } from "@primer/react";
 import { RocketIcon } from "@primer/octicons-react";
 
@@ -12,7 +11,7 @@ type HeaderParams = {
 
 export default function Header({ title, subtitle, actions }: HeaderParams) {
   return (
-    <div className="w-full px-20 py-10 sm:py-16">
+    <div className="w-full px-10 py-10 sm:py-40">
       <PageHeader role="banner" aria-label="Único Planner">
         <PageHeader.TitleArea variant="large">
           <PageHeader.LeadingVisual>

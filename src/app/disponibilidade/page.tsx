@@ -1,8 +1,13 @@
+import { auth, currentUser } from "@clerk/nextjs/server";
 import Header from "../layout/PageHeader";
 import DisponibilidadeForm from "./components/disponibilidadeForm";
 import DisponibilidadeData from "./components/disponibilidadeData";
 
-export default function DisponibilidadePage() {
+export default async function DisponibilidadePage() {
+  await auth.protect();
+  const user = await currentUser();
+  if (!user) return null;
+
   return (
     <div className="w-full">
       <Header

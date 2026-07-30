@@ -9,11 +9,11 @@ export default function DisponibilidadePage() {
         title="Disponibilidade"
         subtitle="Insira sua disponibilidade de estudos para que possamos ajudar na montagem ho seu horário"
       />
-      <div className="flex flex-col md:flex-row gap-16 px-20 pb-8">
-        <div>
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-16 px-10 pb-8 w-full">
+        <div className="w-full md:w-3/5 flex justify-center">
           <DisponibilidadeData />
         </div>
-        <div>
+        <div className="w-full md:flex-1 flex justify-center">
           <DisponibilidadeForm />
         </div>
       </div>

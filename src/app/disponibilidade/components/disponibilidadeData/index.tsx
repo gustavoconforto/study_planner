@@ -15,7 +15,7 @@ export default function DisponibilidadeData() {
         <TableCaption>A list of your recent invoices.</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[100px]">Dia</TableHead>
+            <TableHead className="w-25">Dia</TableHead>
             <TableHead className="text-center">Início</TableHead>
             <TableHead className="text-center">Fim</TableHead>
           </TableRow>

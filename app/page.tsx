@@ -1,5 +1,3 @@
-"use client";
-
 import Image from "next/image";
 import { RiCalendarLine, RiTaskLine, RiLineChartLine } from "@remixicon/react";
 import { Button } from "@/components/ui/button";
@@ -75,9 +73,7 @@ export default function Home() {
                     <Icon size={18} />
                   </span>
                   <p className="text-base font-semibold">{title}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {description}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{description}</p>
                 </div>
               ))}
             </div>

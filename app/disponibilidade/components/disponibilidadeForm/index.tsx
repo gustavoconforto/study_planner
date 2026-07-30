@@ -1,6 +1,15 @@
 "use client";
 
-import { FormControl, Select, Button } from "@primer/react";
+import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useState, type ChangeEvent } from "react";
 export default function DisponibilidadeForm() {
   const [diaDaSemana, setDiaDaSemana] = useState("segunda");
@@ -9,104 +18,57 @@ export default function DisponibilidadeForm() {
     setDiaDaSemana(event.target.value);
   }
 
-  const horas = [
-    "00",
-    "01",
-    "02",
-    "03",
-    "04",
-    "05",
-    "06",
-    "07",
-    "08",
-    "09",
-    "10",
-    "11",
-    "12",
-    "13",
-    "14",
-    "15",
-    "16",
-    "17",
-    "18",
-    "19",
-    "20",
-    "21",
-    "22",
-    "23",
-    "24",
+  const items = [
+    { label: "Domingo", value: "0" },
+    { label: "Segunda-feira", value: "1" },
+    { label: "Terça-feira", value: "2" },
+    { label: "Quarta-feira", value: "3" },
+    { label: "Quinta-feira", value: "4" },
+    { label: "Sexta-feira", value: "5" },
+    { label: "Sábado", value: "6" },
   ];
 
-  const minutos = ["00", "15", "30", "45"];
   return (
-    <div className="flex flex-col gap-4">
-      <FormControl>
-        <FormControl.Label>Selecione o dia</FormControl.Label>
-        <Select onChange={handleSelectDiaDaSemana}>
-          <Select.Option value="segunda">Segunda-Feira</Select.Option>
-          <Select.Option value="terca">Terça-Feira</Select.Option>
-          <Select.Option value="quarta">Quarta-Feira</Select.Option>
-          <Select.Option value="quinta">Quinta-Feira</Select.Option>
-          <Select.Option value="sexta">Sexta-Feira</Select.Option>
-          <Select.Option value="sabado">Sábado</Select.Option>
-          <Select.Option value="domingo">Domingo</Select.Option>
+    <div className="flex flex-col gap-5">
+      <Field>
+        <FieldLabel>Seledione o dia</FieldLabel>
+        <Select items={items}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Dia..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {items.map((item) => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.label}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
         </Select>
-      </FormControl>
-
-      <div className="flex flex-row gap-2">
-        <FormControl>
-          <FormControl.Label>Hora</FormControl.Label>
-          <Select onChange={handleSelectDiaDaSemana}>
-            {horas.map((hora) => {
-              return (
-                <Select.Option key={`${hora}:00`} value={hora}>
-                  {hora}
-                </Select.Option>
-              );
-            })}
-          </Select>
-        </FormControl>
-
-        <FormControl>
-          <FormControl.Label>Minuto</FormControl.Label>
-          <Select onChange={handleSelectDiaDaSemana}>
-            {minutos.map((minuto) => {
-              return (
-                <Select.Option key={minuto} value={minuto}>
-                  {minuto}
-                </Select.Option>
-              );
-            })}
-          </Select>
-        </FormControl>
-        <h1 className="flex items-center">→</h1>
-        <FormControl>
-          <FormControl.Label>Hora</FormControl.Label>
-          <Select onChange={handleSelectDiaDaSemana}>
-            {horas.map((hora) => {
-              return (
-                <Select.Option key={`${hora}:00`} value={hora}>
-                  {hora}
-                </Select.Option>
-              );
-            })}
-          </Select>
-        </FormControl>
-
-        <FormControl>
-          <FormControl.Label>Minuto</FormControl.Label>
-          <Select onChange={handleSelectDiaDaSemana}>
-            {minutos.map((minuto) => {
-              return (
-                <Select.Option key={minuto} value={minuto}>
-                  {minuto}
-                </Select.Option>
-              );
-            })}
-          </Select>
-        </FormControl>
-      </div>
-      <Button>Salvar</Button>
+      </Field>
+      <FieldGroup className="mx-auto max-w-xs flex-row">
+        <Field className="w-32">
+          <FieldLabel htmlFor="time-picker-optional">Início</FieldLabel>
+          <Input
+            type="time"
+            id="time-picker-optional"
+            step="1"
+            defaultValue="10:30:00"
+            className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          />
+        </Field>
+        <Field className="w-32">
+          <FieldLabel htmlFor="time-picker-optional">Fim</FieldLabel>
+          <Input
+            type="time"
+            id="time-picker-optional"
+            step="1"
+            defaultValue="10:30:00"
+            className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          />
+        </Field>
+      </FieldGroup>
     </div>
   );
 }

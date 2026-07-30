@@ -7,8 +7,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { readDisponibilidade } from "../../actions";
 
-export default function DisponibilidadeData() {
+export default async function DisponibilidadeData({
+  userEmail,
+}: {
+  userEmail: string;
+}) {
+  const disponibilidade = await readDisponibilidade({ userEmail });
   return (
     <div className="flex items-center justify-center">
       <Table>
@@ -21,41 +27,16 @@ export default function DisponibilidadeData() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow>
-            <TableCell className="font-medium">Terça-Feira</TableCell>
-            <TableCell className="text-center">14:00:00</TableCell>
-            <TableCell className="text-center">18:00:00</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">Quarta-Feira</TableCell>
-            <TableCell className="text-center">14:00:00</TableCell>
-            <TableCell className="text-center">20:00:00</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">Quinta-Feira</TableCell>
-            <TableCell className="text-center">14:00:00</TableCell>
-            <TableCell className="text-center">16:30:00</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">Quinta-Feira</TableCell>
-            <TableCell className="text-center">18:00:00</TableCell>
-            <TableCell className="text-center">20:00:00</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">Sexta-Feira</TableCell>
-            <TableCell className="text-center">14:00:00</TableCell>
-            <TableCell className="text-center">18:00:00</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">Sábado</TableCell>
-            <TableCell className="text-center">14:00:00</TableCell>
-            <TableCell className="text-center">16:00:00</TableCell>
-          </TableRow>
-          <TableRow>
-            <TableCell className="font-medium">Domingo</TableCell>
-            <TableCell className="text-center">10:00:00</TableCell>
-            <TableCell className="text-center">13:00:00</TableCell>
-          </TableRow>
+          {disponibilidade.ok &&
+            disponibilidade.data!.map((disp) => {
+              return (
+                <TableRow key={disp.id}>
+                  <TableCell className="font-medium">Terça-Feira</TableCell>
+                  <TableCell className="text-center">14:00:00</TableCell>
+                  <TableCell className="text-center">18:00:00</TableCell>
+                </TableRow>
+              );
+            })}
         </TableBody>
       </Table>
     </div>

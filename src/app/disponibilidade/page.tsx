@@ -7,6 +7,7 @@ export default async function DisponibilidadePage() {
   await auth.protect();
   const user = await currentUser();
   if (!user) return null;
+  const userEmail = user.primaryEmailAddress!.emailAddress;
 
   return (
     <div className="w-full">
@@ -16,10 +17,10 @@ export default async function DisponibilidadePage() {
       />
       <div className="flex flex-col md:flex-row items-center md:items-start gap-16 px-10 pb-8 w-full">
         <div className="w-full md:w-3/5 flex justify-center">
-          <DisponibilidadeData />
+          <DisponibilidadeData userEmail={userEmail} />
         </div>
         <div className="w-full md:flex-1 flex justify-center">
-          <DisponibilidadeForm />
+          <DisponibilidadeForm userEmail={userEmail} />
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { integer, pgTable, varchar } from "drizzle-orm/pg-core";
 
-export const usersTable = pgTable("agendamentos", {
+export const agendamentoTable = pgTable("agendamentos", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   email: varchar({ length: 255 }).notNull(),
   weekday: integer().notNull(),

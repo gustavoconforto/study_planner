@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,10 +13,18 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 export default function DisponibilidadeForm() {
-  const [diaDaSemana, setDiaDaSemana] = useState("segunda");
+  const [weekDay, setWeekDay] = useState("segunda");
+  const [start, setStart] = useState("00:00:00");
+  const [finish, setFinish] = useState("00:00:00");
 
   function handleSelectDiaDaSemana(value: string | null) {
-    if (value) setDiaDaSemana(value);
+    if (value) setWeekDay(value);
+  }
+  function handleStartInput(event: React.ChangeEvent<HTMLInputElement>) {
+    setStart(event.target.value);
+  }
+  function handleFinishInput(event: React.ChangeEvent<HTMLInputElement>) {
+    setFinish(event.target.value);
   }
 
   const items = [
@@ -29,12 +38,12 @@ export default function DisponibilidadeForm() {
   ];
 
   return (
-    <div className="flex flex-col gap-5">
-      {diaDaSemana}
+    <div className="flex flex-col gap-6 border-x px-10">
+      {weekDay} -{start} -{finish}
       <Field>
         <FieldLabel>Seledione o dia</FieldLabel>
         <Select items={items} onValueChange={handleSelectDiaDaSemana}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger>
             <SelectValue placeholder="Dia..." />
           </SelectTrigger>
           <SelectContent>
@@ -48,28 +57,31 @@ export default function DisponibilidadeForm() {
           </SelectContent>
         </Select>
       </Field>
-      <FieldGroup className="mx-auto max-w-xs flex-row">
-        <Field className="w-32">
-          <FieldLabel htmlFor="time-picker-optional">Início</FieldLabel>
+      <FieldGroup>
+        <Field>
+          <FieldLabel htmlFor="time-picker-inicio">Início</FieldLabel>
           <Input
             type="time"
-            id="time-picker-optional"
+            id="time-picker-inicio"
             step="1"
-            defaultValue="10:30:00"
+            defaultValue="00:00:00"
             className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+            onChange={handleStartInput}
           />
         </Field>
-        <Field className="w-32">
-          <FieldLabel htmlFor="time-picker-optional">Fim</FieldLabel>
+        <Field>
+          <FieldLabel htmlFor="time-picker-fim">Fim</FieldLabel>
           <Input
             type="time"
-            id="time-picker-optional"
+            id="time-picker-fim"
             step="1"
-            defaultValue="10:30:00"
+            defaultValue="00:00:00"
             className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+            onChange={handleFinishInput}
           />
         </Field>
       </FieldGroup>
+      <Button variant="outline">Salvar</Button>
     </div>
   );
 }

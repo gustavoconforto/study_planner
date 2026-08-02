@@ -33,7 +33,7 @@ export default function DisponibilidadeForm({
     setFinish(event.target.value);
   }
 
-  function handleSaveButton(event: React.MouseEvent<HTMLButtonElement>) {
+  function handleSaveButton() {
     if (weekday != 10 && start != "00:00:00" && finish != "00:00:00") {
       saveDisponibilidade({
         email: userEmail,

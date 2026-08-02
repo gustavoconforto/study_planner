@@ -12,13 +12,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-export default function DisponibilidadeForm() {
-  const [weekDay, setWeekDay] = useState("segunda");
+import { saveDisponibilidade } from "../../actions";
+import { weekDays } from "@/utils/data";
+
+export default function DisponibilidadeForm({
+  userEmail,
+}: {
+  userEmail: string;
+}) {
+  const [weekday, setWeekDay] = useState(10);
   const [start, setStart] = useState("00:00:00");
   const [finish, setFinish] = useState("00:00:00");
 
-  function handleSelectDiaDaSemana(value: string | null) {
-    if (value) setWeekDay(value);
+  function handleSelectDiaDaSemana(value: number | null) {
+    if (value !== null) setWeekDay(value);
   }
   function handleStartInput(event: React.ChangeEvent<HTMLInputElement>) {
     setStart(event.target.value);
@@ -27,28 +34,28 @@ export default function DisponibilidadeForm() {
     setFinish(event.target.value);
   }
 
-  const items = [
-    { label: "Domingo", value: "0" },
-    { label: "Segunda-feira", value: "1" },
-    { label: "Terça-feira", value: "2" },
-    { label: "Quarta-feira", value: "3" },
-    { label: "Quinta-feira", value: "4" },
-    { label: "Sexta-feira", value: "5" },
-    { label: "Sábado", value: "6" },
-  ];
+  function handleSaveButton() {
+    if (weekday != 10 && start != "00:00:00" && finish != "00:00:00") {
+      saveDisponibilidade({
+        email: userEmail,
+        weekday,
+        start,
+        finish,
+      });
+    }
+  }
 
   return (
     <div className="flex flex-col gap-6 border-x px-10">
-      {weekDay} -{start} -{finish}
       <Field>
         <FieldLabel>Seledione o dia</FieldLabel>
-        <Select items={items} onValueChange={handleSelectDiaDaSemana}>
+        <Select items={weekDays} onValueChange={handleSelectDiaDaSemana}>
           <SelectTrigger>
             <SelectValue placeholder="Dia..." />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {items.map((item) => (
+              {weekDays.map((item) => (
                 <SelectItem key={item.value} value={item.value}>
                   {item.label}
                 </SelectItem>
@@ -81,7 +88,9 @@ export default function DisponibilidadeForm() {
           />
         </Field>
       </FieldGroup>
-      <Button variant="outline">Salvar</Button>
+      <Button variant="outline" onClick={handleSaveButton}>
+        Salvar
+      </Button>
     </div>
   );
 }

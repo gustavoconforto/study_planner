@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { saveDisponibilidade } from "../../actions";
+import { weekDays } from "@/utils/data";
 
 export default function DisponibilidadeForm({
   userEmail,
@@ -24,7 +25,7 @@ export default function DisponibilidadeForm({
   const [finish, setFinish] = useState("00:00:00");
 
   function handleSelectDiaDaSemana(value: number | null) {
-    if (value) setWeekDay(value);
+    if (value !== null) setWeekDay(value);
   }
   function handleStartInput(event: React.ChangeEvent<HTMLInputElement>) {
     setStart(event.target.value);
@@ -44,27 +45,17 @@ export default function DisponibilidadeForm({
     }
   }
 
-  const items = [
-    { label: "Domingo", value: 0 },
-    { label: "Segunda-feira", value: 1 },
-    { label: "Terça-feira", value: 2 },
-    { label: "Quarta-feira", value: 3 },
-    { label: "Quinta-feira", value: 4 },
-    { label: "Sexta-feira", value: 5 },
-    { label: "Sábado", value: 6 },
-  ];
-
   return (
     <div className="flex flex-col gap-6 border-x px-10">
       <Field>
         <FieldLabel>Seledione o dia</FieldLabel>
-        <Select items={items} onValueChange={handleSelectDiaDaSemana}>
+        <Select items={weekDays} onValueChange={handleSelectDiaDaSemana}>
           <SelectTrigger>
             <SelectValue placeholder="Dia..." />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              {items.map((item) => (
+              {weekDays.map((item) => (
                 <SelectItem key={item.value} value={item.value}>
                   {item.label}
                 </SelectItem>

@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { readDisponibilidade } from "../../actions";
-
+import { getWeekDayName } from "@/utils/data";
 export default async function DisponibilidadeData({
   userEmail,
 }: {
@@ -18,7 +18,7 @@ export default async function DisponibilidadeData({
   return (
     <div className="flex items-center justify-center">
       <Table>
-        <TableCaption>A list of your recent invoices.</TableCaption>
+        <TableCaption>Sua disponibilidade semanal.</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead className="w-25">Dia</TableHead>
@@ -31,9 +31,11 @@ export default async function DisponibilidadeData({
             disponibilidade.data!.map((disp) => {
               return (
                 <TableRow key={disp.id}>
-                  <TableCell className="font-medium">Terça-Feira</TableCell>
-                  <TableCell className="text-center">14:00:00</TableCell>
-                  <TableCell className="text-center">18:00:00</TableCell>
+                  <TableCell className="font-medium">
+                    {getWeekDayName(disp.weekday)}
+                  </TableCell>
+                  <TableCell className="text-center">{disp.start}</TableCell>
+                  <TableCell className="text-center">{disp.finish}</TableCell>
                 </TableRow>
               );
             })}

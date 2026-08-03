@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Field, FieldLabel, FieldGroup } from "@/components/ui/field";
+import {
+  Field,
+  FieldLabel,
+  FieldGroup,
+  FieldError,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -12,8 +17,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
+import { z } from "zod";
+import { cn } from "@/lib/utils";
 import { saveDisponibilidade } from "../../actions";
 import { weekDays } from "@/utils/data";
+
+const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+const disponibilidadeSchema = z
+  .object({
+    weekday: z
+      .number()
+      .min(0, "Selecione um dia da semana")
+      .max(6, "Selecione um dia da semana"),
+    start: z.string().regex(timeRegex, "Informe um horário inicial válido"),
+    finish: z.string().regex(timeRegex, "Informe um horário final válido"),
+  })
+  .refine((data) => data.finish > data.start, {
+    message: "O horário final deve ser depois do horário inicial",
+    path: ["finish"],
+  });
+
+type DisponibilidadeErrors = Partial<
+  Record<"weekday" | "start" | "finish", string[]>
+>;
 
 export default function DisponibilidadeForm({
   userEmail,
@@ -23,6 +50,12 @@ export default function DisponibilidadeForm({
   const [weekday, setWeekDay] = useState(10);
   const [start, setStart] = useState("00:00:00");
   const [finish, setFinish] = useState("00:00:00");
+  const [errors, setErrors] = useState<DisponibilidadeErrors>({});
+  const [isSaving, setIsSaving] = useState(false);
+  const [feedback, setFeedback] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   function handleSelectDiaDaSemana(value: number | null) {
     if (value !== null) setWeekDay(value);
@@ -34,63 +67,120 @@ export default function DisponibilidadeForm({
     setFinish(event.target.value);
   }
 
-  function handleSaveButton() {
-    if (weekday != 10 && start != "00:00:00" && finish != "00:00:00") {
-      saveDisponibilidade({
+  async function handleSaveButton() {
+    const result = disponibilidadeSchema.safeParse({ weekday, start, finish });
+
+    if (!result.success) {
+      setErrors(z.flattenError(result.error).fieldErrors);
+      setFeedback(null);
+      return;
+    }
+
+    setErrors({});
+    setFeedback(null);
+    setIsSaving(true);
+    try {
+      const response = await saveDisponibilidade({
         email: userEmail,
-        weekday,
-        start,
-        finish,
+        weekday: result.data.weekday,
+        start: result.data.start,
+        finish: result.data.finish,
       });
+
+      setFeedback(
+        response.ok
+          ? { type: "success", message: "Disponibilidade salva com sucesso!" }
+          : {
+              type: "error",
+              message:
+                "Não foi possível salvar a disponibilidade. Tente novamente.",
+            },
+      );
+    } catch {
+      setFeedback({
+        type: "error",
+        message: "Não foi possível salvar a disponibilidade. Tente novamente.",
+      });
+    } finally {
+      setIsSaving(false);
     }
   }
 
   return (
-    <div className="flex flex-col gap-6 border-x px-10">
-      <Field>
-        <FieldLabel>Seledione o dia</FieldLabel>
-        <Select items={weekDays} onValueChange={handleSelectDiaDaSemana}>
-          <SelectTrigger>
-            <SelectValue placeholder="Dia..." />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {weekDays.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </Field>
+    <div className="flex flex-col gap-6 border-x px-10 w-full max-w-md">
       <FieldGroup>
-        <Field>
-          <FieldLabel htmlFor="time-picker-inicio">Início</FieldLabel>
+        <Field data-invalid={!!errors.weekday}>
+          <FieldLabel htmlFor="weekday">Dia da semana</FieldLabel>
+          <Select
+            items={weekDays}
+            value={weekday === 10 ? null : weekday}
+            onValueChange={handleSelectDiaDaSemana}
+          >
+            <SelectTrigger id="weekday" className="w-full">
+              <SelectValue placeholder="Selecione um dia" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {weekDays.map((day) => (
+                  <SelectItem key={day.value} value={day.value}>
+                    {day.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+          <FieldError
+            errors={errors.weekday?.map((message) => ({ message }))}
+          />
+        </Field>
+
+        <Field data-invalid={!!errors.start}>
+          <FieldLabel htmlFor="start">Horário inicial</FieldLabel>
           <Input
+            id="start"
             type="time"
-            id="time-picker-inicio"
-            step="1"
-            defaultValue="00:00:00"
-            className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+            placeholder="00:00"
+            value={start}
             onChange={handleStartInput}
+            aria-invalid={!!errors.start}
           />
+          <FieldError errors={errors.start?.map((message) => ({ message }))} />
         </Field>
-        <Field>
-          <FieldLabel htmlFor="time-picker-fim">Fim</FieldLabel>
+
+        <Field data-invalid={!!errors.finish}>
+          <FieldLabel htmlFor="finish">Horário final</FieldLabel>
           <Input
+            id="finish"
+            placeholder="00:00"
             type="time"
-            id="time-picker-fim"
-            step="1"
-            defaultValue="00:00:00"
-            className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+            value={finish}
             onChange={handleFinishInput}
+            aria-invalid={!!errors.finish}
           />
+          <FieldError errors={errors.finish?.map((message) => ({ message }))} />
         </Field>
+
+        <Button
+          variant="secondary"
+          type="button"
+          onClick={handleSaveButton}
+          disabled={isSaving}
+        >
+          {isSaving ? "Salvando..." : "Salvar"}
+        </Button>
+
+        {feedback && (
+          <p
+            role="status"
+            className={cn(
+              "text-sm",
+              feedback.type === "success" ? "text-primary" : "text-destructive",
+            )}
+          >
+            {feedback.message}
+          </p>
+        )}
       </FieldGroup>
-      <Button variant="outline" onClick={handleSaveButton}>
-        Salvar
-      </Button>
     </div>
   );
 }

@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
-import {
-  ClerkProvider,
-  Show,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-} from "@clerk/nextjs";
+import { ClerkProvider, Show, SignInButton, UserButton } from "@clerk/nextjs";
 
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -65,39 +59,39 @@ export default function RootLayout({
                   <nav aria-label="Global" className="hidden md:block">
                     <ul className="flex items-center gap-6 text-sm">
                       <li>
-                        <a
+                        <Link
                           className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
                           href="#"
                         >
                           Dashboard
-                        </a>
+                        </Link>
                       </li>
 
                       <li>
-                        <a
+                        <Link
                           className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                          href="disponibilidade"
+                          href="/disponibilidade"
                         >
                           Disponibilidade
-                        </a>
+                        </Link>
                       </li>
 
                       <li>
-                        <a
+                        <Link
                           className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                          href="#"
+                          href="/tarefas"
                         >
                           Tarefas
-                        </a>
+                        </Link>
                       </li>
 
                       <li>
-                        <a
+                        <Link
                           className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
                           href="#"
                         >
                           Agenda
-                        </a>
+                        </Link>
                       </li>
                     </ul>
                   </nav>
@@ -107,39 +101,39 @@ export default function RootLayout({
                 <nav aria-label="Global" className="block md:hidden pb-4">
                   <ul className="flex fllex-col items-center gap-6 text-sm">
                     <li>
-                      <a
+                      <Link
                         className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
                         href="#"
                       >
                         Dashboard
-                      </a>
+                      </Link>
                     </li>
 
                     <li>
-                      <a
+                      <Link
                         className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                        href="disponibilidade"
+                        href="/disponibilidade"
                       >
                         Disponibilidade
-                      </a>
+                      </Link>
                     </li>
 
                     <li>
-                      <a
+                      <Link
                         className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                        href="#"
+                        href="/tarefas"
                       >
                         Tarefas
-                      </a>
+                      </Link>
                     </li>
 
                     <li>
-                      <a
+                      <Link
                         className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
                         href="#"
                       >
                         Agenda
-                      </a>
+                      </Link>
                     </li>
                   </ul>
                 </nav>

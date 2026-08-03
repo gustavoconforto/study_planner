@@ -21,6 +21,7 @@ type saveTarefaParams = {
   title: string;
   description: string;
   estimated_minutes: number;
+  due_date: string;
 };
 
 export async function saveTarefa(params: saveTarefaParams) {
@@ -34,6 +35,7 @@ export async function saveTarefa(params: saveTarefaParams) {
       title: params.title,
       description: params.description,
       estimated_minutes: params.estimated_minutes,
+      due_date: params.due_date,
     });
     revalidatePath("tarefas");
     return {

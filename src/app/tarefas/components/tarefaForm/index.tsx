@@ -45,11 +45,18 @@ const tarefaSchema = z.object({
   estimated_minutes: z
     .number()
     .min(1, "Informe uma estimativa de tempo válida"),
+  due_date: z.iso.date("Informe uma data de entrega válida"),
 });
 
 type TarefaErrors = Partial<
   Record<
-    "type" | "dificulty" | "subject" | "title" | "description" | "estimated_minutes",
+    | "type"
+    | "dificulty"
+    | "subject"
+    | "title"
+    | "description"
+    | "estimated_minutes"
+    | "due_date",
     string[]
   >
 >;
@@ -61,6 +68,7 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [estimatedMinutes, setEstimatedMinutes] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [errors, setErrors] = useState<TarefaErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<{
@@ -90,6 +98,9 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
   ) {
     setEstimatedMinutes(event.target.value);
   }
+  function handleDueDateInput(event: React.ChangeEvent<HTMLInputElement>) {
+    setDueDate(event.target.value);
+  }
 
   async function handleSaveButton() {
     const result = tarefaSchema.safeParse({
@@ -99,6 +110,7 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
       title,
       description,
       estimated_minutes: Number(estimatedMinutes),
+      due_date: dueDate,
     });
 
     if (!result.success) {
@@ -119,6 +131,7 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
         title: result.data.title,
         description: result.data.description,
         estimated_minutes: result.data.estimated_minutes,
+        due_date: result.data.due_date,
       });
 
       setFeedback(
@@ -256,6 +269,20 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
           />
           <FieldError
             errors={errors.estimated_minutes?.map((message) => ({ message }))}
+          />
+        </Field>
+
+        <Field data-invalid={!!errors.due_date}>
+          <FieldLabel htmlFor="due_date">Data de entrega</FieldLabel>
+          <Input
+            id="due_date"
+            type="date"
+            value={dueDate}
+            onChange={handleDueDateInput}
+            aria-invalid={!!errors.due_date}
+          />
+          <FieldError
+            errors={errors.due_date?.map((message) => ({ message }))}
           />
         </Field>
 

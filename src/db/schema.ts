@@ -1,4 +1,5 @@
 import {
+  date,
   integer,
   pgEnum,
   pgTable,
@@ -58,6 +59,7 @@ export const tarefaTable = pgTable("tasks", {
   title: varchar({ length: 255 }).notNull(),
   description: text().notNull(),
   estimated_minutes: integer().notNull(),
+  due_date: date("due_date").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").$onUpdate(() => new Date()),
   completed_at: timestamp("completed_at"),

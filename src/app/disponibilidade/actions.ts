@@ -27,7 +27,6 @@ export async function readDisponibilidade(params: readDisponibilidadeParams) {
     .where(eq(agendamentoTable.email, params.userEmail))
     .orderBy(agendamentoTable.weekday);
 
-  console.log(result);
   if (result) {
     return {
       ok: true,

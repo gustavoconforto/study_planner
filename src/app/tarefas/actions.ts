@@ -53,7 +53,7 @@ export async function readTarefas(params: readTarefasParams) {
     .select()
     .from(tarefaTable)
     .where(eq(tarefaTable.student_email, params.userEmail))
-    .orderBy(tarefaTable.created_at);
+    .orderBy(tarefaTable.due_date);
 
   if (result) {
     return {

@@ -273,7 +273,7 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
         </Field>
 
         <Field data-invalid={!!errors.due_date}>
-          <FieldLabel htmlFor="due_date">Data de entrega</FieldLabel>
+          <FieldLabel htmlFor="due_date">Data limite</FieldLabel>
           <Input
             id="due_date"
             type="date"

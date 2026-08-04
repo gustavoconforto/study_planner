@@ -1,13 +1,6 @@
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { readTarefas } from "../../actions";
+import { DeleteTarefaButton } from "./DeleteTarefaButton";
 
 function formatDueDate(due_date: string) {
   const [year, month, day] = due_date.split("-");
@@ -17,43 +10,62 @@ function formatDueDate(due_date: string) {
 export default async function TarefaData({ userEmail }: { userEmail: string }) {
   const tarefas = await readTarefas({ userEmail });
   return (
-    <div className="flex items-center justify-center">
-      <Table>
-        <TableCaption>Suas tarefas cadastradas.</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Título</TableHead>
-            <TableHead>Matéria</TableHead>
-            <TableHead>Tipo</TableHead>
-            <TableHead className="text-center">Dificuldade</TableHead>
-            <TableHead className="text-center">Estimativa</TableHead>
-            <TableHead className="text-center">Data Limite</TableHead>
-            <TableHead className="text-center">Status</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {tarefas.ok &&
-            tarefas.data!.map((tarefa) => {
-              return (
-                <TableRow key={tarefa.id}>
-                  <TableCell className="font-medium">{tarefa.title}</TableCell>
-                  <TableCell>{tarefa.subject}</TableCell>
-                  <TableCell>{tarefa.type}</TableCell>
-                  <TableCell className="text-center">
-                    {tarefa.dificulty}
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {tarefa.estimated_minutes} min
-                  </TableCell>
-                  <TableCell className="text-center">
-                    {formatDueDate(tarefa.due_date)}
-                  </TableCell>
-                  <TableCell className="text-center">{tarefa.status}</TableCell>
-                </TableRow>
-              );
-            })}
-        </TableBody>
-      </Table>
+    <div className="flex flex-col gap-4">
+      {tarefas.ok &&
+        tarefas.data!.map((tarefa) => {
+          return (
+            <Card key={tarefa.id} className="flex-col gap-4 w-[500px]">
+              <CardHeader>
+                <CardTitle>{tarefa.title}</CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-4">
+                <div className="flex justify-between items-center">
+                  <div className="flex justify-items-start">
+                    <span className="text-muted-foreground font-semibold">
+                      Matéria:&nbsp;
+                    </span>
+                    <span>{tarefa.subject}</span>
+                  </div>
+                  <DeleteTarefaButton id={tarefa.id} />
+                </div>
+                <div className="flex gap-2  justify-between">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground font-semibold">
+                      Tipo:&nbsp;
+                    </span>
+                    <span>{tarefa.type}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground font-semibold">
+                      Dificuldade:&nbsp;
+                    </span>
+                    <span>{tarefa.dificulty}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground font-semibold">
+                      Estimativa:&nbsp;
+                    </span>
+                    <span>{tarefa.estimated_minutes} min</span>
+                  </div>
+                </div>
+                <div className="flex gap-2  justify-between">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground font-semibold">
+                      Data Limite:&nbsp;
+                    </span>
+                    <span>{formatDueDate(tarefa.due_date)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground font-semibold">
+                      Status:&nbsp;
+                    </span>
+                    <span>{tarefa.status}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
     </div>
   );
 }

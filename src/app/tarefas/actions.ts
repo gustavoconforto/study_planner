@@ -67,4 +67,16 @@ export async function readTarefas(params: readTarefasParams) {
   };
 }
 
-export async function deleteTarefa() {}
+export async function deleteTarefa(id: number) {
+  try {
+    await db.delete(tarefaTable).where(eq(tarefaTable.id, id));
+    revalidatePath("tarefas");
+    return {
+      ok: true,
+    };
+  } catch {
+    return {
+      ok: false,
+    };
+  }
+}

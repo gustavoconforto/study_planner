@@ -1,7 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
 import { db } from "@/src/db/db";
-import { agendamentoTable } from "@/src/db/schema";
+import { disponibilidadeTable } from "@/src/db/schema";
 import { eq } from "drizzle-orm";
 
 type readDisponibilidadeParams = {
@@ -17,7 +17,7 @@ type saveDisponibilidadeParams = {
 
 export async function saveDisponibilidade(params: saveDisponibilidadeParams) {
   try {
-    await db.insert(agendamentoTable).values(params);
+    await db.insert(disponibilidadeTable).values(params);
     revalidatePath("disponibilidade");
     return {
       ok: true,
@@ -32,9 +32,9 @@ export async function saveDisponibilidade(params: saveDisponibilidadeParams) {
 export async function readDisponibilidade(params: readDisponibilidadeParams) {
   const result = await db
     .select()
-    .from(agendamentoTable)
-    .where(eq(agendamentoTable.email, params.userEmail))
-    .orderBy(agendamentoTable.weekday);
+    .from(disponibilidadeTable)
+    .where(eq(disponibilidadeTable.email, params.userEmail))
+    .orderBy(disponibilidadeTable.weekday);
 
   if (result) {
     return {

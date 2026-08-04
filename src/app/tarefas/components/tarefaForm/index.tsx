@@ -37,6 +37,7 @@ const tarefaSchema = z.object({
   type: z.enum(TASK_TYPE, "Selecione um tipo de tarefa"),
   dificulty: z.enum(TASK_DIFICULTY, "Selecione a dificuldade"),
   subject: z.enum(TASK_SUBJECT, "Selecione a matéria"),
+  theme: z.string().min(1, "Informe o tema"),
   title: z
     .string()
     .min(1, "Informe um título")
@@ -54,6 +55,7 @@ type TarefaErrors = Partial<
     | "dificulty"
     | "subject"
     | "title"
+    | "theme"
     | "description"
     | "estimated_minutes"
     | "due_date",
@@ -67,6 +69,7 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
   const [subject, setSubject] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [theme, setTheme] = useState("");
   const [estimatedMinutes, setEstimatedMinutes] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [errors, setErrors] = useState<TarefaErrors>({});
@@ -93,6 +96,9 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
   ) {
     setDescription(event.target.value);
   }
+  function handleThemeInput(event: React.ChangeEvent<HTMLTextAreaElement>) {
+    setTheme(event.target.value);
+  }
   function handleEstimatedMinutesInput(
     event: React.ChangeEvent<HTMLInputElement>,
   ) {
@@ -108,6 +114,7 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
       dificulty,
       subject,
       title,
+      theme,
       description,
       estimated_minutes: Number(estimatedMinutes),
       due_date: dueDate,
@@ -127,6 +134,7 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
         email: userEmail,
         type: result.data.type,
         dificulty: result.data.dificulty,
+        theme: result.data.theme,
         subject: result.data.subject,
         title: result.data.title,
         description: result.data.description,
@@ -165,6 +173,20 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
             aria-invalid={!!errors.title}
           />
           <FieldError errors={errors.title?.map((message) => ({ message }))} />
+        </Field>
+
+        <Field data-invalid={!!errors.theme}>
+          <FieldLabel htmlFor="description">Tema:</FieldLabel>
+          <Textarea
+            id="theme"
+            placeholder="Descreva o tema do conteúdo a ser estudado"
+            value={theme}
+            onChange={handleThemeInput}
+            aria-invalid={!!errors.theme}
+          />
+          <FieldError
+            errors={errors.description?.map((message) => ({ message }))}
+          />
         </Field>
 
         <Field data-invalid={!!errors.description}>

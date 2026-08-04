@@ -6,6 +6,7 @@ import {
   TASK_TYPE,
   TASK_DIFICULTY,
   TASK_SUBJECT,
+  TASK_STATUS,
 } from "@/src/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -17,6 +18,7 @@ type saveTarefaParams = {
   email: string;
   type: (typeof TASK_TYPE)[number];
   dificulty: (typeof TASK_DIFICULTY)[number];
+  theme: string;
   subject: (typeof TASK_SUBJECT)[number];
   title: string;
   description: string;
@@ -31,6 +33,7 @@ export async function saveTarefa(params: saveTarefaParams) {
       dificulty: params.dificulty,
       subject: params.subject,
       status: "CADASTRADO",
+      theme: params.theme,
       student_email: params.email,
       title: params.title,
       description: params.description,
@@ -65,6 +68,26 @@ export async function readTarefas(params: readTarefasParams) {
     ok: false,
     data: undefined,
   };
+}
+
+export async function updateTarefaStatus(
+  id: number,
+  status: (typeof TASK_STATUS)[number],
+) {
+  try {
+    await db
+      .update(tarefaTable)
+      .set({ status })
+      .where(eq(tarefaTable.id, id));
+    revalidatePath("tarefas");
+    return {
+      ok: true,
+    };
+  } catch {
+    return {
+      ok: false,
+    };
+  }
 }
 
 export async function deleteTarefa(id: number) {

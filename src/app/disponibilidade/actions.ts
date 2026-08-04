@@ -16,8 +16,17 @@ type saveDisponibilidadeParams = {
 };
 
 export async function saveDisponibilidade(params: saveDisponibilidadeParams) {
-  await db.insert(agendamentoTable).values(params);
-  revalidatePath("disponibilidade");
+  try {
+    await db.insert(agendamentoTable).values(params);
+    revalidatePath("disponibilidade");
+    return {
+      ok: true,
+    };
+  } catch {
+    return {
+      ok: false,
+    };
+  }
 }
 
 export async function readDisponibilidade(params: readDisponibilidadeParams) {

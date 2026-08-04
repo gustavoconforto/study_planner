@@ -52,6 +52,7 @@ export async function aiPlanner({
   availabilitiesData,
 }: {
   tasksData: {
+    id: number;
     student_email: string;
     title: string;
     description: string;
@@ -72,6 +73,15 @@ export async function aiPlanner({
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is not configured");
   }
+
+  if (tasksData.length === 0) {
+    return {
+      summary: { general_analysis: "", study_recommendations: [] },
+      sessions: [],
+    };
+  }
+
+  const validTaskIds = tasksData.map((task) => task.id);
 
   const startDate = new Date().toISOString().slice(0, 10);
   const endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
@@ -96,6 +106,10 @@ export async function aiPlanner({
     - Procure marcar os horários em horários disponíveis. Procure os horários já ocopados para nao sobrepor as tarefas.
     - Retorne apenas JSON válido.
     - Para cada tarefa, analise o tema informado e forneça orientações de estudo.
+    - Cada tarefa enviada em "Tarefas" tem um campo "id" único. O "task_id" retornado DEVE ser exatamente igual a esse campo "id" — nunca invente, recalcule ou renumere um task_id.
+    - IDs de tarefa válidos para esta chamada: ${JSON.stringify(validTaskIds)}.
+    - "study_recommendations" deve conter exatamente um item para cada id em ${JSON.stringify(validTaskIds)} (nenhum a mais, nenhum a menos, sem ids repetidos).
+    - Toda sessão em "sessions" deve usar o mesmo task_id da tarefa correspondente — se uma tarefa gerar várias sessões, todas elas repetem o mesmo task_id.
 
 
     Retorne exatamente neste formato:
@@ -151,12 +165,75 @@ export async function aiPlanner({
     Disponibilidade do aluno:
     ${JSON.stringify(availabilitiesData)}`;
 
+  const recommendationSchema = {
+    type: "object",
+    properties: {
+      task_id: { type: "integer", enum: validTaskIds },
+      title: { type: "string" },
+      overview: { type: "string" },
+      prerequisites: { type: "array", items: { type: "string" } },
+      topics_to_study: { type: "array", items: { type: "string" } },
+      common_mistakes: { type: "array", items: { type: "string" } },
+      study_tips: { type: "array", items: { type: "string" } },
+    },
+    required: [
+      "task_id",
+      "title",
+      "overview",
+      "prerequisites",
+      "topics_to_study",
+      "common_mistakes",
+      "study_tips",
+    ],
+    additionalProperties: false,
+  };
+
+  const sessionSchema = {
+    type: "object",
+    properties: {
+      task_id: { type: "integer", enum: validTaskIds },
+      title: { type: "string" },
+      start_time: { type: "string" },
+      end_time: { type: "string" },
+      reason: { type: "string" },
+    },
+    required: ["task_id", "title", "start_time", "end_time", "reason"],
+    additionalProperties: false,
+  };
+
   const response = await openai.responses.create({
     model: "gpt-4o-mini",
     instructions: prompt,
     input: input,
     text: {
-      format: { type: "json_object" },
+      format: {
+        type: "json_schema",
+        name: "study_plan",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: {
+            summary: {
+              type: "object",
+              properties: {
+                general_analysis: { type: "string" },
+                study_recommendations: {
+                  type: "array",
+                  items: recommendationSchema,
+                },
+              },
+              required: ["general_analysis", "study_recommendations"],
+              additionalProperties: false,
+            },
+            sessions: {
+              type: "array",
+              items: sessionSchema,
+            },
+          },
+          required: ["summary", "sessions"],
+          additionalProperties: false,
+        },
+      },
     },
   });
 

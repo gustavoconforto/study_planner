@@ -34,6 +34,12 @@ export default async function TarefaData({ userEmail }: { userEmail: string }) {
                   </span>
                   <span>{tarefa.theme}</span>
                 </div>
+                <div className="flex justify-items-start">
+                  <span className="text-muted-foreground font-semibold">
+                    Tema:&nbsp;
+                  </span>
+                  <span>{tarefa.description}</span>
+                </div>
                 <div className="flex gap-2  justify-between">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground font-semibold">

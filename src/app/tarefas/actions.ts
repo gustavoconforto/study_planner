@@ -6,6 +6,7 @@ import {
   TASK_TYPE,
   TASK_DIFICULTY,
   TASK_SUBJECT,
+  TASK_STATUS,
 } from "@/src/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -67,6 +68,26 @@ export async function readTarefas(params: readTarefasParams) {
     ok: false,
     data: undefined,
   };
+}
+
+export async function updateTarefaStatus(
+  id: number,
+  status: (typeof TASK_STATUS)[number],
+) {
+  try {
+    await db
+      .update(tarefaTable)
+      .set({ status })
+      .where(eq(tarefaTable.id, id));
+    revalidatePath("tarefas");
+    return {
+      ok: true,
+    };
+  } catch {
+    return {
+      ok: false,
+    };
+  }
 }
 
 export async function deleteTarefa(id: number) {

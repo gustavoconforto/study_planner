@@ -4,6 +4,28 @@ import { eq, and } from "drizzle-orm";
 import { tarefaTable, disponibilidadeTable } from "@/src/db/schema";
 import { openai } from "@/lib/openai";
 
+type TasksType = typeof tarefaTable.$inferSelect;
+
+export async function changeTaskStatus({
+  tasksData,
+}: {
+  tasksData: TasksType[];
+}) {
+  for (let i = 0; i < tasksData.length; i++) {
+    if (tasksData[i].status === "CADASTRADO") {
+      await db
+        .update(tarefaTable)
+        .set({ status: "AGENDADO" })
+        .where(eq(tarefaTable.id, tasksData[i].id));
+    } else {
+      await db
+        .update(tarefaTable)
+        .set({ status: "CADASTRADO" })
+        .where(eq(tarefaTable.id, tasksData[i].id));
+    }
+  }
+}
+
 export async function getTasksFromUser({ userEmail }: { userEmail: string }) {
   try {
     const result = await db
@@ -247,6 +269,7 @@ export async function generatePlan({ userEmail }: { userEmail: string }) {
   if (!tasksResult.ok || !availabilitiesResult.ok) {
     return { ok: false as const };
   }
+  await changeTaskStatus({ tasksData: tasksResult.data });
 
   try {
     const data = await aiPlanner({

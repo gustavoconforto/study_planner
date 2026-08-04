@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { readTarefas } from "../../actions";
 import { DeleteTarefaButton } from "./DeleteTarefaButton";
+import TaskStatus from "../tarefaStatus";
 
 function formatDueDate(due_date: string) {
   const [year, month, day] = due_date.split("-");
@@ -67,12 +68,7 @@ export default async function TarefaData({ userEmail }: { userEmail: string }) {
                     </span>
                     <span>{formatDueDate(tarefa.due_date)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-semibold">
-                      Status:&nbsp;
-                    </span>
-                    <span>{tarefa.status}</span>
-                  </div>
+                  <TaskStatus taskId={tarefa.id} status={tarefa.status} />
                 </div>
               </CardContent>
             </Card>

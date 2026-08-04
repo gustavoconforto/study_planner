@@ -36,7 +36,7 @@ export default async function TarefaData({ userEmail }: { userEmail: string }) {
                 </div>
                 <div className="flex justify-items-start">
                   <span className="text-muted-foreground font-semibold">
-                    Tema:&nbsp;
+                    Descrição:&nbsp;
                   </span>
                   <span>{tarefa.description}</span>
                 </div>

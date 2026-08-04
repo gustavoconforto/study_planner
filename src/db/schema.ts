@@ -8,7 +8,7 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
-export const agendamentoTable = pgTable("agendamentos", {
+export const disponibilidadeTable = pgTable("agendamentos", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   email: varchar({ length: 255 }).notNull(),
   weekday: integer().notNull(),

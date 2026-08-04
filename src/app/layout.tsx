@@ -61,9 +61,9 @@ export default function RootLayout({
                       <li>
                         <Link
                           className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                          href="#"
+                          href="/planner"
                         >
-                          Dashboard
+                          Planner
                         </Link>
                       </li>
 
@@ -103,9 +103,9 @@ export default function RootLayout({
                     <li>
                       <Link
                         className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                        href="#"
+                        href="/planner"
                       >
-                        Dashboard
+                        Planner
                       </Link>
                     </li>
 

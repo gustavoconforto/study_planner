@@ -14,7 +14,7 @@ export default async function TarefaData({ userEmail }: { userEmail: string }) {
       {tarefas.ok &&
         tarefas.data!.map((tarefa) => {
           return (
-            <Card key={tarefa.id} className="flex-col gap-4 w-[500px]">
+            <Card key={tarefa.id} className="flex-col gap-4 w-125">
               <CardHeader>
                 <CardTitle>{tarefa.title}</CardTitle>
               </CardHeader>

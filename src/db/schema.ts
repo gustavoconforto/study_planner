@@ -57,6 +57,7 @@ export const tarefaTable = pgTable("tasks", {
   subject: tasksubjectEnum("task_subject").notNull(),
   student_email: varchar({ length: 255 }).notNull(),
   title: varchar({ length: 255 }).notNull(),
+  theme: varchar({ length: 255 }),
   description: text().notNull(),
   estimated_minutes: integer().notNull(),
   due_date: date("due_date").notNull(),

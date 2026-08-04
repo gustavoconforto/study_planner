@@ -17,6 +17,7 @@ type saveTarefaParams = {
   email: string;
   type: (typeof TASK_TYPE)[number];
   dificulty: (typeof TASK_DIFICULTY)[number];
+  theme: string;
   subject: (typeof TASK_SUBJECT)[number];
   title: string;
   description: string;
@@ -31,6 +32,7 @@ export async function saveTarefa(params: saveTarefaParams) {
       dificulty: params.dificulty,
       subject: params.subject,
       status: "CADASTRADO",
+      theme: params.theme,
       student_email: params.email,
       title: params.title,
       description: params.description,

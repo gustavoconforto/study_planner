@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/src/db/db";
 import {
   tarefaTable,
+  recomendacaoTable,
   TASK_TYPE,
   TASK_DIFICULTY,
   TASK_SUBJECT,
@@ -75,10 +76,7 @@ export async function updateTarefaStatus(
   status: (typeof TASK_STATUS)[number],
 ) {
   try {
-    await db
-      .update(tarefaTable)
-      .set({ status })
-      .where(eq(tarefaTable.id, id));
+    await db.update(tarefaTable).set({ status }).where(eq(tarefaTable.id, id));
     revalidatePath("tarefas");
     return {
       ok: true,
@@ -93,6 +91,22 @@ export async function updateTarefaStatus(
 export async function deleteTarefa(id: number) {
   try {
     await db.delete(tarefaTable).where(eq(tarefaTable.id, id));
+    revalidatePath("tarefas");
+    return {
+      ok: true,
+    };
+  } catch {
+    return {
+      ok: false,
+    };
+  }
+}
+
+export async function deleteRecommendation(title: string) {
+  try {
+    await db
+      .delete(recomendacaoTable)
+      .where(eq(recomendacaoTable.title, title));
     revalidatePath("tarefas");
     return {
       ok: true,

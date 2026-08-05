@@ -1,10 +1,19 @@
 "use server";
 import { db } from "@/src/db/db";
 import { eq, and } from "drizzle-orm";
-import { tarefaTable, disponibilidadeTable } from "@/src/db/schema";
+import {
+  tarefaTable,
+  disponibilidadeTable,
+  recomendacaoTable,
+  agendamentoTable,
+} from "@/src/db/schema";
 import { openai } from "@/lib/openai";
 
 type TasksType = typeof tarefaTable.$inferSelect;
+type Recommendation = typeof recomendacaoTable.$inferSelect;
+type RecommendationType = Omit<Recommendation, "id">;
+type Session = typeof agendamentoTable.$inferSelect;
+type SessionType = Omit<Session, "id" | "recomentation_id">;
 
 export async function changeTaskStatus({
   tasksData,
@@ -58,6 +67,10 @@ export async function getAvailabilityFromUser({
       .select()
       .from(disponibilidadeTable)
       .where(eq(disponibilidadeTable.email, userEmail));
+
+    if (result.length == 0) {
+      return { ok: false as const };
+    }
     return {
       ok: true as const,
       data: result,
@@ -67,6 +80,51 @@ export async function getAvailabilityFromUser({
       ok: false as const,
     };
   }
+}
+
+const WEEKDAY_NAMES = [
+  "Domingo",
+  "Segunda-feira",
+  "Terça-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sábado",
+];
+
+const PLAN_WINDOW_DAYS = 7;
+
+function buildAvailabilityWindows(
+  availabilitiesData: { weekday: number; start: string; finish: string }[],
+  startDate: string,
+  days: number,
+) {
+  const windows: {
+    date: string;
+    weekday_name: string;
+    start: string;
+    finish: string;
+  }[] = [];
+
+  for (let i = 0; i < days; i++) {
+    const current = new Date(`${startDate}T00:00:00`);
+    current.setDate(current.getDate() + i);
+    const dateStr = current.toISOString().slice(0, 10);
+    const weekday = current.getDay();
+
+    for (const availability of availabilitiesData) {
+      if (availability.weekday === weekday) {
+        windows.push({
+          date: dateStr,
+          weekday_name: WEEKDAY_NAMES[weekday],
+          start: availability.start,
+          finish: availability.finish,
+        });
+      }
+    }
+  }
+
+  return windows;
 }
 
 export async function aiPlanner({
@@ -106,7 +164,14 @@ export async function aiPlanner({
   const validTaskIds = tasksData.map((task) => task.id);
 
   const startDate = new Date().toISOString().slice(0, 10);
-  const endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  const availabilityWindows = buildAvailabilityWindows(
+    availabilitiesData,
+    startDate,
+    PLAN_WINDOW_DAYS,
+  );
+  const endDate = new Date(
+    Date.now() + (PLAN_WINDOW_DAYS - 1) * 24 * 60 * 60 * 1000,
+  )
     .toISOString()
     .slice(0, 10);
 
@@ -114,7 +179,7 @@ export async function aiPlanner({
     Você é um orientador acadêmico especializado em estudantes do ensino médio.
 
     Crie um plano de estudos realista entre ${startDate} e ${endDate}.
-
+    A disponibilidade do aluno já foi convertida em datas exatas (campo "Disponibilidade do aluno" no input, lista de { date, weekday_name, start, finish }). Utilize apenas esses intervalos exatos — não infira dias da semana a partir de outro campo nem agende fora dessas datas/horários.
     Regras:
     - Priorize tarefas com prazos mais próximos.
     - Dedique mais tempo para tarefas classificadas como difíceis.
@@ -184,8 +249,8 @@ export async function aiPlanner({
     Tarefas:
     ${JSON.stringify(tasksData)}
 
-    Disponibilidade do aluno:
-    ${JSON.stringify(availabilitiesData)}`;
+    Disponibilidade do aluno (datas exatas dentro da janela de planejamento, já calculadas a partir da disponibilidade recorrente do aluno):
+    ${JSON.stringify(availabilityWindows)}`;
 
   const recommendationSchema = {
     type: "object",
@@ -224,7 +289,7 @@ export async function aiPlanner({
   };
 
   const response = await openai.responses.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5.6-terra",
     instructions: prompt,
     input: input,
     text: {
@@ -281,4 +346,39 @@ export async function generatePlan({ userEmail }: { userEmail: string }) {
     console.log(error);
     return { ok: false as const };
   }
+}
+
+export async function saveRecomendation({
+  recommendation,
+}: {
+  recommendation: RecommendationType;
+}) {
+  const data = await db
+    .insert(recomendacaoTable)
+    .values({
+      title: recommendation.title,
+      overview: recommendation.overview,
+      prerequisites: recommendation.prerequisites,
+      topics_to_study: recommendation.topics_to_study,
+      common_mistakes: recommendation.common_mistakes,
+      study_tips: recommendation.study_tips,
+    })
+    .returning();
+
+  return data[0].id;
+}
+
+export async function saveSession({
+  session,
+  recommentadionId,
+}: {
+  session: SessionType;
+  recommentadionId: number;
+}) {
+  await db.insert(agendamentoTable).values({
+    recomentation_id: recommentadionId,
+    start_time: session.start_time,
+    end_time: session.end_time,
+    reason: session.reason,
+  });
 }

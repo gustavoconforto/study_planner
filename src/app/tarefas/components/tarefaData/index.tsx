@@ -27,7 +27,7 @@ export default async function TarefaData({ userEmail }: { userEmail: string }) {
                     </span>
                     <span>{tarefa.subject}</span>
                   </div>
-                  <DeleteTarefaButton id={tarefa.id} />
+                  <DeleteTarefaButton id={tarefa.id} title={tarefa.title} />
                 </div>
                 <div className="flex justify-items-start">
                   <span className="text-muted-foreground font-semibold">

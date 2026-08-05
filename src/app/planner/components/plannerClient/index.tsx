@@ -2,7 +2,7 @@
 import { useState } from "react";
 import PlannerData, { type PlannerResult } from "../plannerData";
 import { PlannerForm } from "../plannerForm";
-import { generatePlan } from "../../actions";
+import { generatePlan, saveRecomendation, saveSession } from "../../actions";
 
 export default function PlannerClient({ userEmail }: { userEmail: string }) {
   const [result, setResult] = useState<PlannerResult | null>(null);
@@ -14,7 +14,21 @@ export default function PlannerClient({ userEmail }: { userEmail: string }) {
     setError(false);
     const response = await generatePlan({ userEmail });
     if (response.ok) {
-      setResult(response.data as PlannerResult);
+      const data = response.data as PlannerResult;
+
+      for (const recommendation of data.summary.study_recommendations) {
+        const recommentadionId = await saveRecomendation({ recommendation });
+        const task_id = recommendation.task_id;
+
+        const sessions = data.sessions.filter(
+          (session) => session.task_id == task_id,
+        );
+        for (const session of sessions) {
+          await saveSession({ session, recommentadionId });
+        }
+      }
+
+      setResult(data);
     } else {
       setError(true);
     }

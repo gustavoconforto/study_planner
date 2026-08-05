@@ -1,11 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { deleteTarefa } from "../../actions";
+import { deleteTarefa, deleteRecommendation } from "../../actions";
 
-export function DeleteTarefaButton({ id }: { id: number }) {
+export function DeleteTarefaButton({
+  id,
+  title,
+}: {
+  id: number;
+  title: string;
+}) {
   async function handleDelete() {
     await deleteTarefa(id);
+    await deleteRecommendation(title);
   }
 
   return (

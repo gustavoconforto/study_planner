@@ -65,3 +65,23 @@ export const tarefaTable = pgTable("tasks", {
   updated_at: timestamp("updated_at").$onUpdate(() => new Date()),
   completed_at: timestamp("completed_at"),
 });
+
+export const agendamentoTable = pgTable("schedules", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  recomentation_id: integer().references(() => recomendacaoTable.id, {
+    onDelete: "cascade",
+  }),
+  start_time: timestamp({ mode: "string", precision: 0 }).notNull(),
+  end_time: timestamp({ mode: "string", precision: 0 }).notNull(),
+  reason: varchar({ length: 255 }).notNull(),
+});
+
+export const recomendacaoTable = pgTable("recommendations", {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  title: varchar({ length: 255 }).notNull(),
+  overview: text().notNull(),
+  prerequisites: text().array().notNull(),
+  topics_to_study: text().array().notNull(),
+  common_mistakes: text().array().notNull(),
+  study_tips: text().array().notNull(),
+});

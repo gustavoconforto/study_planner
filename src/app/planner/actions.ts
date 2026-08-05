@@ -58,6 +58,10 @@ export async function getAvailabilityFromUser({
       .select()
       .from(disponibilidadeTable)
       .where(eq(disponibilidadeTable.email, userEmail));
+
+    if (result.length == 0) {
+      return { ok: false as const };
+    }
     return {
       ok: true as const,
       data: result,

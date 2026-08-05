@@ -70,13 +70,16 @@ export default function PlannerData({
 }) {
   if (loading) return <div>Gerando plano de estudos...</div>;
   if (error) return <div>Não foi possível gerar o plano de estudos.</div>;
-  if (!result) return <div>Clique em &quot;Criar&quot; para gerar seu plano de estudos.</div>;
+  if (!result)
+    return (
+      <div>Clique em &quot;Criar&quot; para gerar seu plano de estudos.</div>
+    );
 
   const recommendationsByTask = new Map<number, StudyRecommendation>();
   result.summary?.study_recommendations?.forEach((recommendation) => {
     recommendationsByTask.set(recommendation.task_id, recommendation);
   });
-
+  console.log(result);
   const sessionsByTask = new Map<number, Session[]>();
   result.sessions?.forEach((session) => {
     const sessions = sessionsByTask.get(session.task_id) ?? [];

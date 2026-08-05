@@ -79,7 +79,7 @@ export default function PlannerData({
   result.summary?.study_recommendations?.forEach((recommendation) => {
     recommendationsByTask.set(recommendation.task_id, recommendation);
   });
-  console.log(result);
+
   const sessionsByTask = new Map<number, Session[]>();
   result.sessions?.forEach((session) => {
     const sessions = sessionsByTask.get(session.task_id) ?? [];

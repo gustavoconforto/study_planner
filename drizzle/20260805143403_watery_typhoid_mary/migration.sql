@@ -1,0 +1,1 @@
+ALTER TABLE "recommendations" ALTER COLUMN "overview" SET DATA TYPE text USING "overview"::text;

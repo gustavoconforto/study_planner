@@ -1,10 +1,19 @@
 "use server";
 import { db } from "@/src/db/db";
 import { eq, and } from "drizzle-orm";
-import { tarefaTable, disponibilidadeTable } from "@/src/db/schema";
+import {
+  tarefaTable,
+  disponibilidadeTable,
+  recomendacaoTable,
+  agendamentoTable,
+} from "@/src/db/schema";
 import { openai } from "@/lib/openai";
 
 type TasksType = typeof tarefaTable.$inferSelect;
+type Recommendation = typeof recomendacaoTable.$inferSelect;
+type RecommendationType = Omit<Recommendation, "id">;
+type Session = typeof agendamentoTable.$inferSelect;
+type SessionType = Omit<Session, "id" | "recomentation_id">;
 
 export async function changeTaskStatus({
   tasksData,
@@ -337,4 +346,39 @@ export async function generatePlan({ userEmail }: { userEmail: string }) {
     console.log(error);
     return { ok: false as const };
   }
+}
+
+export async function saveRecomendation({
+  recommendation,
+}: {
+  recommendation: RecommendationType;
+}) {
+  const data = await db
+    .insert(recomendacaoTable)
+    .values({
+      title: recommendation.title,
+      overview: recommendation.overview,
+      prerequisites: recommendation.prerequisites,
+      topics_to_study: recommendation.topics_to_study,
+      common_mistakes: recommendation.common_mistakes,
+      study_tips: recommendation.study_tips,
+    })
+    .returning();
+
+  return data[0].id;
+}
+
+export async function saveSession({
+  session,
+  recommentadionId,
+}: {
+  session: SessionType;
+  recommentadionId: number;
+}) {
+  await db.insert(agendamentoTable).values({
+    recomentation_id: recommentadionId,
+    start_time: session.start_time,
+    end_time: session.end_time,
+    reason: session.reason,
+  });
 }

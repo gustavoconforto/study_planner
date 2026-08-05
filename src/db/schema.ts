@@ -79,7 +79,7 @@ export const agendamentoTable = pgTable("schedules", {
 export const recomendacaoTable = pgTable("recommendations", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   title: varchar({ length: 255 }).notNull(),
-  overview: varchar({ length: 255 }).notNull(),
+  overview: text().notNull(),
   prerequisites: text().array().notNull(),
   topics_to_study: text().array().notNull(),
   common_mistakes: text().array().notNull(),

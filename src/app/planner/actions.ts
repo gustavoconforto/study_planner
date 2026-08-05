@@ -224,7 +224,7 @@ export async function aiPlanner({
   };
 
   const response = await openai.responses.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5.6-terra",
     instructions: prompt,
     input: input,
     text: {

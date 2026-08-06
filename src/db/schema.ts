@@ -68,6 +68,7 @@ export const tarefaTable = pgTable("tasks", {
 
 export const agendamentoTable = pgTable("schedules", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  email: varchar({ length: 255 }),
   recomentation_id: integer().references(() => recomendacaoTable.id, {
     onDelete: "cascade",
   }),

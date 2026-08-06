@@ -150,6 +150,16 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
               message: "Não foi possível salvar a tarefa. Tente novamente.",
             },
       );
+      if (response.ok) {
+        setType("");
+        setDificulty("");
+        setSubject("");
+        setTitle("");
+        setDescription("");
+        setTheme("");
+        setEstimatedMinutes("");
+        setDueDate("");
+      }
     } catch {
       setFeedback({
         type: "error",

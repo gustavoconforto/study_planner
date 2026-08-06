@@ -83,42 +83,30 @@ export default async function AgendaPage() {
                     <p className="">
                       Visão geral: {schedule.recommendations?.overview}
                     </p>
-                    <p className="">
-                      Pré-requisitos:
-                      <ol>
-                        {schedule.recommendations?.prerequisites.map((item) => {
-                          return <li key={item}> - {item}</li>;
-                        })}
-                      </ol>
-                    </p>
-                    <p className="">
-                      Tópicos:{" "}
-                      <ol>
-                        {schedule.recommendations?.topics_to_study.map(
-                          (item) => {
-                            return <li key={item}> - {item}</li>;
-                          },
-                        )}
-                      </ol>
-                    </p>
-                    <p className="">
-                      Dicas de estudo:{" "}
-                      <ol>
-                        {schedule.recommendations?.study_tips.map((item) => {
-                          return <li key={item}> - {item}</li>;
-                        })}
-                      </ol>
-                    </p>
-                    <p className="">
-                      Erros comuns:{" "}
-                      <ol>
-                        {schedule.recommendations?.common_mistakes.map(
-                          (item) => {
-                            return <li key={item}> - {item}</li>;
-                          },
-                        )}
-                      </ol>
-                    </p>
+                    <p className="">Pré-requisitos:</p>
+                    <ol>
+                      {schedule.recommendations?.prerequisites.map((item) => {
+                        return <li key={item}> - {item}</li>;
+                      })}
+                    </ol>
+                    <p className="">Tópicos: </p>
+                    <ol>
+                      {schedule.recommendations?.topics_to_study.map((item) => {
+                        return <li key={item}> - {item}</li>;
+                      })}
+                    </ol>
+                    <p className="">Dicas de estudo: </p>
+                    <ol>
+                      {schedule.recommendations?.study_tips.map((item) => {
+                        return <li key={item}> - {item}</li>;
+                      })}
+                    </ol>
+                    <p className="">Erros comuns: </p>
+                    <ol>
+                      {schedule.recommendations?.common_mistakes.map((item) => {
+                        return <li key={item}> - {item}</li>;
+                      })}
+                    </ol>
                   </CardContent>
                 </Card>
               </Fragment>

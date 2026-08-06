@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/table";
 import { readDisponibilidade } from "../../actions";
 import { getWeekDayName, weekDays } from "@/utils/data";
+import DisponibilidadeDeleteButton from "../disponibilidadeDeleteButton";
 
 function timeToMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
@@ -72,6 +73,7 @@ export default async function DisponibilidadeData({
             <TableHead className="w-25">Dia</TableHead>
             <TableHead className="text-center">Início</TableHead>
             <TableHead className="text-center">Fim</TableHead>
+            <TableHead className="text-center"> </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -84,6 +86,9 @@ export default async function DisponibilidadeData({
                   </TableCell>
                   <TableCell className="text-center">{disp.start}</TableCell>
                   <TableCell className="text-center">{disp.finish}</TableCell>
+                  <TableCell className="text-center">
+                    <DisponibilidadeDeleteButton id={disp.id} />
+                  </TableCell>
                 </TableRow>
               );
             })}

@@ -96,6 +96,12 @@ export default function DisponibilidadeForm({
                 "Não foi possível salvar a disponibilidade. Tente novamente.",
             },
       );
+
+      if (response.ok) {
+        setWeekDay(10);
+        setStart("00:00:00");
+        setFinish("00:00:00");
+      }
     } catch {
       setFeedback({
         type: "error",

@@ -48,4 +48,18 @@ export async function readDisponibilidade(params: readDisponibilidadeParams) {
   };
 }
 
-export async function deleteDisponibilidade() {}
+export async function deleteDisponibilidade(id: number) {
+  try {
+    await db
+      .delete(disponibilidadeTable)
+      .where(eq(disponibilidadeTable.id, id));
+    revalidatePath("disponibilidade");
+    return {
+      ok: true,
+    };
+  } catch {
+    return {
+      ok: false,
+    };
+  }
+}

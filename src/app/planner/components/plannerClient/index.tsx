@@ -2,7 +2,7 @@
 import { useState } from "react";
 import PlannerData, { type PlannerResult } from "../plannerData";
 import { PlannerForm } from "../plannerForm";
-import { generatePlan, saveRecomendation, saveSession } from "../../actions";
+import { generatePlan, saveRecomendation, saveSchedules } from "../../actions";
 
 export default function PlannerClient({ userEmail }: { userEmail: string }) {
   const [result, setResult] = useState<PlannerResult | null>(null);
@@ -24,7 +24,7 @@ export default function PlannerClient({ userEmail }: { userEmail: string }) {
           (session) => session.task_id == task_id,
         );
         for (const session of sessions) {
-          await saveSession({ session, recommentadionId });
+          await saveSchedules({ session, recommentadionId, userEmail });
         }
       }
 

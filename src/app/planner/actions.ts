@@ -13,7 +13,7 @@ type TasksType = typeof tarefaTable.$inferSelect;
 type Recommendation = typeof recomendacaoTable.$inferSelect;
 type RecommendationType = Omit<Recommendation, "id">;
 type Session = typeof agendamentoTable.$inferSelect;
-type SessionType = Omit<Session, "id" | "recomentation_id">;
+type SessionType = Omit<Session, "id" | "recomentation_id" | "email">;
 
 export async function changeTaskStatus({
   tasksData,
@@ -368,15 +368,18 @@ export async function saveRecomendation({
   return data[0].id;
 }
 
-export async function saveSession({
+export async function saveSchedules({
   session,
   recommentadionId,
+  userEmail,
 }: {
   session: SessionType;
   recommentadionId: number;
+  userEmail: string;
 }) {
   await db.insert(agendamentoTable).values({
     recomentation_id: recommentadionId,
+    email: userEmail,
     start_time: session.start_time,
     end_time: session.end_time,
     reason: session.reason,

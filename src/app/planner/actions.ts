@@ -127,6 +127,15 @@ function buildAvailabilityWindows(
   return windows;
 }
 
+export async function getSchedulesDatesByUser(email: string) {
+  const result = await db
+    .select()
+    .from(agendamentoTable)
+    .where(eq(agendamentoTable.email, email));
+
+  return result;
+}
+
 export async function aiPlanner({
   tasksData,
   availabilitiesData,

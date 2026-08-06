@@ -23,6 +23,25 @@ export const metadata: Metadata = {
   description: "Gerador de planejamento de horários inteligente",
 };
 
+const menuItems: { href: string; title: string }[] = [
+  {
+    href: "/planner",
+    title: "Planner",
+  },
+  {
+    href: "/disponibilidade",
+    title: "Disponibilidade",
+  },
+  {
+    href: "/tarefas",
+    title: "Tarefas",
+  },
+  {
+    href: "/agenda",
+    title: "Agenda",
+  },
+];
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -58,41 +77,18 @@ export default function RootLayout({
                 <div className="flex flex-1 items-center justify-end md:justify-between">
                   <nav aria-label="Global" className="hidden md:block">
                     <ul className="flex items-center gap-6 text-sm">
-                      <li>
-                        <Link
-                          className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                          href="/planner"
-                        >
-                          Planner
-                        </Link>
-                      </li>
-
-                      <li>
-                        <Link
-                          className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                          href="/disponibilidade"
-                        >
-                          Disponibilidade
-                        </Link>
-                      </li>
-
-                      <li>
-                        <Link
-                          className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                          href="/tarefas"
-                        >
-                          Tarefas
-                        </Link>
-                      </li>
-
-                      <li>
-                        <Link
-                          className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                          href="#"
-                        >
-                          Agenda
-                        </Link>
-                      </li>
+                      {menuItems.map((item) => {
+                        return (
+                          <li key={item.href}>
+                            <Link
+                              className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
+                              href={item.href}
+                            >
+                              {item.title}
+                            </Link>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </nav>
                 </div>
@@ -100,41 +96,18 @@ export default function RootLayout({
               <div className="px-4">
                 <nav aria-label="Global" className="block md:hidden pb-4">
                   <ul className="flex fllex-col items-center gap-6 text-sm">
-                    <li>
-                      <Link
-                        className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                        href="/planner"
-                      >
-                        Planner
-                      </Link>
-                    </li>
-
-                    <li>
-                      <Link
-                        className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                        href="/disponibilidade"
-                      >
-                        Disponibilidade
-                      </Link>
-                    </li>
-
-                    <li>
-                      <Link
-                        className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                        href="/tarefas"
-                      >
-                        Tarefas
-                      </Link>
-                    </li>
-
-                    <li>
-                      <Link
-                        className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                        href="#"
-                      >
-                        Agenda
-                      </Link>
-                    </li>
+                    {menuItems.map((item) => {
+                      return (
+                        <li key={item.href}>
+                          <Link
+                            className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
+                            href={item.href}
+                          >
+                            {item.title}
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </nav>
               </div>

@@ -1,0 +1,1 @@
+ALTER TABLE "schedules" ALTER COLUMN "reason" SET DATA TYPE text USING "reason"::text;

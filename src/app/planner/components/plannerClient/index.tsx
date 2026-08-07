@@ -4,7 +4,13 @@ import PlannerData, { type PlannerResult } from "../plannerData";
 import { PlannerForm } from "../plannerForm";
 import { generatePlan, saveRecomendation, saveSchedules } from "../../actions";
 
-export default function PlannerClient({ userEmail }: { userEmail: string }) {
+export default function PlannerClient({
+  userEmail,
+  taskCount,
+}: {
+  userEmail: string;
+  taskCount: number;
+}) {
   const [result, setResult] = useState<PlannerResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -38,7 +44,12 @@ export default function PlannerClient({ userEmail }: { userEmail: string }) {
   return (
     <div className="flex flex-col md:flex-row items-center md:items-start gap-16 px-10 pb-8 w-full">
       <div className="w-full md:w-1/2 min-w-0 flex justify-center">
-        <PlannerData result={result} loading={loading} error={error} />
+        <PlannerData
+          result={result}
+          loading={loading}
+          error={error}
+          taskCount={taskCount}
+        />
       </div>
       <div className="w-full md:w-1/2 min-w-0 flex justify-center">
         <PlannerForm onGenerate={handleGenerate} loading={loading} />

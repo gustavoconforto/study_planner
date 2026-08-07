@@ -127,9 +127,19 @@ function buildAvailabilityWindows(
   return windows;
 }
 
+export async function getSchedulesDatesByUser(email: string) {
+  const result = await db
+    .select()
+    .from(agendamentoTable)
+    .where(eq(agendamentoTable.email, email));
+
+  return result;
+}
+
 export async function aiPlanner({
   tasksData,
   availabilitiesData,
+  alreadyBookedSechedules,
 }: {
   tasksData: {
     id: number;
@@ -148,6 +158,10 @@ export async function aiPlanner({
     weekday: number;
     start: string;
     finish: string;
+  }[];
+  alreadyBookedSechedules: {
+    startTime: string;
+    endTime: string;
   }[];
 }) {
   if (!process.env.OPENAI_API_KEY) {
@@ -180,17 +194,19 @@ export async function aiPlanner({
 
     Crie um plano de estudos realista entre ${startDate} e ${endDate}.
     A disponibilidade do aluno já foi convertida em datas exatas (campo "Disponibilidade do aluno" no input, lista de { date, weekday_name, start, finish }). Utilize apenas esses intervalos exatos — não infira dias da semana a partir de outro campo nem agende fora dessas datas/horários.
+    O aluno já possui sessões agendadas anteriormente (campo "Horários já ocupados" no input, lista de { startTime, endTime }). Esses intervalos NÃO estão disponíveis — nenhuma sessão nova pode se sobrepor, total ou parcialmente, a nenhum desses intervalos.
     Regras:
     - Priorize tarefas com prazos mais próximos.
     - Dedique mais tempo para tarefas classificadas como difíceis.
     - Não agende sessões fora dos horários disponíveis do aluno.
+    - Não agende nenhuma sessão que se sobreponha a um intervalo listado em "Horários já ocupados".
     - Divida tarefas longas em sessões menores.
     - Evite sessões superiores a 60 minutos.
     - Evite escolher Sábado e Domingo a não ser que não haja outra opção
     - Caso a matéria (subject) esteja ente as opções: Matemática, Física, Química, coloque no início da tarde.
     - Caso a matéria seja redação e você consiga identificar algum tema, passe, nas dicas (study_tips) alguns links de matéria de páginas que julgar interessante. Tente no mínimo duas referências
     - Considere revisões quando houver tempo disponível.
-    - Procure marcar os horários em horários disponíveis. Procure os horários já ocopados para nao sobrepor as tarefas.
+    - Antes de definir cada sessão, verifique o campo "Horários já ocupados" e não sobreponha as tarefas a nenhum desses intervalos.
     - Retorne apenas JSON válido.
     - Para cada tarefa, analise o tema informado e forneça orientações de estudo.
     - Cada tarefa enviada em "Tarefas" tem um campo "id" único. O "task_id" retornado DEVE ser exatamente igual a esse campo "id" — nunca invente, recalcule ou renumere um task_id.
@@ -250,7 +266,10 @@ export async function aiPlanner({
     ${JSON.stringify(tasksData)}
 
     Disponibilidade do aluno (datas exatas dentro da janela de planejamento, já calculadas a partir da disponibilidade recorrente do aluno):
-    ${JSON.stringify(availabilityWindows)}`;
+    ${JSON.stringify(availabilityWindows)}
+
+    Horários já ocupados (sessões já agendadas anteriormente; nenhuma nova sessão pode se sobrepor a estes intervalos):
+    ${JSON.stringify(alreadyBookedSechedules)}`;
 
   const recommendationSchema = {
     type: "object",
@@ -327,10 +346,27 @@ export async function aiPlanner({
   return JSON.parse(response.output_text);
 }
 
+async function getAlreadyBookedSechedules({
+  userEmail,
+}: {
+  userEmail: string;
+}) {
+  const result = await db
+    .select({
+      startTime: agendamentoTable.start_time,
+      endTime: agendamentoTable.end_time,
+    })
+    .from(agendamentoTable)
+    .where(eq(agendamentoTable.email, userEmail));
+  return result;
+}
+
 export async function generatePlan({ userEmail }: { userEmail: string }) {
   const tasksResult = await getTasksFromUser({ userEmail });
   const availabilitiesResult = await getAvailabilityFromUser({ userEmail });
-
+  const alreadyBookedSechedules = await getAlreadyBookedSechedules({
+    userEmail,
+  });
   if (!tasksResult.ok || !availabilitiesResult.ok) {
     return { ok: false as const };
   }
@@ -340,6 +376,7 @@ export async function generatePlan({ userEmail }: { userEmail: string }) {
     const data = await aiPlanner({
       tasksData: tasksResult.data,
       availabilitiesData: availabilitiesResult.data,
+      alreadyBookedSechedules,
     });
     return { ok: true as const, data };
   } catch (error) {

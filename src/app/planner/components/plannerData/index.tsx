@@ -5,7 +5,6 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-
 type StudyRecommendation = {
   task_id: number;
   title: string;
@@ -63,16 +62,26 @@ export default function PlannerData({
   result,
   loading,
   error,
+  taskCount,
 }: {
   result: PlannerResult | null;
   loading: boolean;
   error: boolean;
+  taskCount: number;
 }) {
   if (loading) return <div>Gerando plano de estudos...</div>;
   if (error) return <div>Não foi possível gerar o plano de estudos.</div>;
   if (!result)
     return (
-      <div>Clique em &quot;Criar&quot; para gerar seu plano de estudos.</div>
+      <div className="flex flex-col">
+        <h1 className="font-semibold text-2xl text-foreground">
+          Você possui um total de {taskCount} tarefas para serem acrescentadas
+          na sua agenda
+        </h1>
+        <h2 className="font-semibold text-gray-500">
+          Clique em &quot;Criar&quot; para gerar seu plano de estudos.
+        </h2>
+      </div>
     );
 
   const recommendationsByTask = new Map<number, StudyRecommendation>();

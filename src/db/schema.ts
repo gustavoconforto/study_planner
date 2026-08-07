@@ -74,7 +74,7 @@ export const agendamentoTable = pgTable("schedules", {
   }),
   start_time: timestamp({ mode: "string", precision: 0 }).notNull(),
   end_time: timestamp({ mode: "string", precision: 0 }).notNull(),
-  reason: varchar({ length: 255 }).notNull(),
+  reason: text().notNull(),
 });
 
 export const recomendacaoTable = pgTable("recommendations", {

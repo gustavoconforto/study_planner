@@ -4,7 +4,8 @@ import { ClerkProvider, Show, SignInButton, UserButton } from "@clerk/nextjs";
 
 import "./globals.css";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
+
+import Navbar from "./layout/Navbar";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -22,25 +23,6 @@ export const metadata: Metadata = {
   title: "Uníco studyPlanner",
   description: "Gerador de planejamento de horários inteligente",
 };
-
-const menuItems: { href: string; title: string }[] = [
-  {
-    href: "/planner",
-    title: "Planner",
-  },
-  {
-    href: "/disponibilidade",
-    title: "Disponibilidade",
-  },
-  {
-    href: "/tarefas",
-    title: "Tarefas",
-  },
-  {
-    href: "/agenda",
-    title: "Agenda",
-  },
-];
 
 export default function RootLayout({
   children,
@@ -65,53 +47,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col w-full">
         <ClerkProvider>
           <header className="border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 flex justify-between">
-            <div>
-              <div className="mx-auto flex h-16 max-w-7xl items-center gap-8 px-4 sm:px-6 lg:px-8">
-                <Link href="/">
-                  <span className="text-xl font-medium tracking-wider text-gray-700 dark:text-gray-200">
-                    Único
-                    <span className="font-extrabold text-red-600">planner</span>
-                  </span>
-                </Link>
-
-                <div className="flex flex-1 items-center justify-end md:justify-between">
-                  <nav aria-label="Global" className="hidden md:block">
-                    <ul className="flex items-center gap-6 text-sm">
-                      {menuItems.map((item) => {
-                        return (
-                          <li key={item.href}>
-                            <Link
-                              className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                              href={item.href}
-                            >
-                              {item.title}
-                            </Link>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </nav>
-                </div>
-              </div>
-              <div className="px-4">
-                <nav aria-label="Global" className="block md:hidden pb-4">
-                  <ul className="flex fllex-col items-center gap-6 text-sm">
-                    {menuItems.map((item) => {
-                      return (
-                        <li key={item.href}>
-                          <Link
-                            className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                            href={item.href}
-                          >
-                            {item.title}
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </nav>
-              </div>
-            </div>
+            <Navbar />
             <div className="flex pr-10">
               <Show when="signed-out">
                 <SignInButton />

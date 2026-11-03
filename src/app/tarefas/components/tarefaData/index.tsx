@@ -1,6 +1,15 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { deleteTarefa, readTarefas } from "../../actions";
+import { RiTaskLine } from "@remixicon/react";
+import { Separator } from "@/components/ui/separator";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
 import { DeleteButton } from "@/components/delete-button";
+import { displayLabel } from "@/utils/data";
+import { deleteTarefa, readTarefas } from "../../actions";
 import TaskStatus from "../tarefaStatus";
 
 function formatDueDate(due_date: string) {
@@ -10,72 +19,69 @@ function formatDueDate(due_date: string) {
 
 export default async function TarefaData() {
   const tarefas = await readTarefas();
+
+  if (tarefas.length === 0) {
+    return (
+      <Empty className="border bg-card">
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <RiTaskLine />
+          </EmptyMedia>
+          <EmptyTitle>Nenhuma tarefa ainda</EmptyTitle>
+          <EmptyDescription>
+            Cadastre deveres, provas e leituras no formulário ao lado.
+          </EmptyDescription>
+        </EmptyHeader>
+      </Empty>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-4">
-      {tarefas.map((tarefa) => {
-        return (
-          <Card key={tarefa.id} className="flex-col gap-4 w-full max-w-125">
-            <CardHeader>
-              <CardTitle>{tarefa.title}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              <div className="flex justify-between items-center">
-                <div className="flex justify-items-start">
-                  <span className="text-muted-foreground font-semibold">
-                    Matéria:&nbsp;
-                  </span>
-                  <span>{tarefa.subject}</span>
-                </div>
-                <DeleteButton
-                  action={deleteTarefa.bind(null, tarefa.id)}
-                  label="Excluir tarefa"
-                />
+    <ul className="flex flex-col rounded-lg border bg-card">
+      {tarefas.map((tarefa, index) => (
+        <li key={tarefa.id} className="flex flex-col">
+          {index > 0 && <Separator />}
+          <article className="flex flex-col gap-3 p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex min-w-0 flex-col gap-1">
+                <p className="text-sm text-muted-foreground">
+                  {displayLabel(tarefa.subject)}
+                  {tarefa.theme && <> – {tarefa.theme}</>}
+                </p>
+                <h2 className="text-base font-semibold">{tarefa.title}</h2>
               </div>
-              <div className="flex justify-items-start">
-                <span className="text-muted-foreground font-semibold">
-                  Tema:&nbsp;
-                </span>
-                <span>{tarefa.theme}</span>
-              </div>
-              <div className="flex justify-items-start">
-                <span className="text-muted-foreground font-semibold">
-                  Descrição:&nbsp;
-                </span>
-                <span>{tarefa.description}</span>
-              </div>
-              <div className="flex gap-2  justify-between">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground font-semibold">
-                    Tipo:&nbsp;
-                  </span>
-                  <span>{tarefa.type}</span>
+              <DeleteButton
+                action={deleteTarefa.bind(null, tarefa.id)}
+                label="Excluir tarefa"
+              />
+            </div>
+
+            <p className="text-sm text-pretty">{tarefa.description}</p>
+
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm sm:grid-cols-4">
+                <div>
+                  <dt className="text-muted-foreground">Tipo</dt>
+                  <dd>{displayLabel(tarefa.type)}</dd>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground font-semibold">
-                    Dificuldade:&nbsp;
-                  </span>
-                  <span>{tarefa.dificulty}</span>
+                <div>
+                  <dt className="text-muted-foreground">Dificuldade</dt>
+                  <dd>{displayLabel(tarefa.dificulty)}</dd>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground font-semibold">
-                    Estimativa:&nbsp;
-                  </span>
-                  <span>{tarefa.estimated_minutes} min</span>
+                <div>
+                  <dt className="text-muted-foreground">Estimativa</dt>
+                  <dd className="tabular-nums">{tarefa.estimated_minutes} min</dd>
                 </div>
-              </div>
-              <div className="flex gap-2  justify-between items-center">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground font-semibold">
-                    Data Limite:&nbsp;
-                  </span>
-                  <span>{formatDueDate(tarefa.due_date)}</span>
+                <div>
+                  <dt className="text-muted-foreground">Data limite</dt>
+                  <dd className="tabular-nums">{formatDueDate(tarefa.due_date)}</dd>
                 </div>
-                <TaskStatus taskId={tarefa.id} status={tarefa.status} />
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
-    </div>
+              </dl>
+              <TaskStatus taskId={tarefa.id} status={tarefa.status} />
+            </div>
+          </article>
+        </li>
+      ))}
+    </ul>
   );
 }

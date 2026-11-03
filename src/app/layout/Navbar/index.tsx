@@ -1,4 +1,8 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const menuItems: { href: string; title: string }[] = [
   {
@@ -24,27 +28,34 @@ const menuItems: { href: string; title: string }[] = [
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
+
   return (
-    <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 sm:px-6 md:h-16 md:flex-row md:items-center md:gap-8 md:py-0 lg:px-8">
-      <Link href="/">
-        <span className="text-xl font-medium tracking-wider text-gray-700 dark:text-gray-200">
-          Único
-          <span className="font-extrabold text-red-600">planner</span>
-        </span>
+    <div className="contents">
+      <Link href="/" className="text-lg font-semibold tracking-tight">
+        Único planner
       </Link>
 
-      <nav aria-label="Global">
-        <ul className="flex flex-wrap items-center gap-6 text-sm">
-          {menuItems.map((item) => (
-            <li key={item.href}>
-              <Link
-                className="text-gray-500 transition hover:text-gray-500/75 dark:text-white dark:hover:text-white/75"
-                href={item.href}
-              >
-                {item.title}
-              </Link>
-            </li>
-          ))}
+      {/* On phones the menu takes its own row below the logo and account button. */}
+      <nav aria-label="Principal" className="order-last w-full md:order-none md:w-auto">
+        <ul className="-mx-2 flex flex-wrap items-center gap-1 text-sm">
+          {menuItems.map((item) => {
+            const active = pathname.startsWith(item.href);
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "block rounded-md px-2 py-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+                    active && "bg-accent font-medium text-accent-foreground",
+                  )}
+                >
+                  {item.title}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </div>

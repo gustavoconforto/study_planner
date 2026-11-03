@@ -34,3 +34,10 @@ export function localNow(now = new Date()) {
     time: `${parts.hour}:${parts.minute}`,
   };
 }
+
+// Enum values are stored in caps ("LÍNGUA PORTUGUESA"); show them in sentence case. Acronyms ("PS", "PB") stay.
+export function displayLabel(value: string) {
+  return value.length <= 2
+    ? value
+    : value[0] + value.slice(1).toLocaleLowerCase("pt-BR");
+}

@@ -12,8 +12,8 @@ export default async function PlannerPage() {
   const taskCount = await countTasksToPlan();
 
   return (
-    <div className="w-full">
-      <Header title="Planner" subtitle="Crie seu plano de estudos." />
+    <div>
+      <Header title="Planner" subtitle="Transforme suas tarefas e horários livres em um plano de estudos para a semana." />
       <PlannerClient taskCount={taskCount} />
     </div>
   );

@@ -5,7 +5,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { MAX_TASKS_PER_PLAN, type PlannerResult } from "../../lib";
+import type { PlannerResult } from "../../lib";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString("pt-BR", {
@@ -23,9 +23,9 @@ function formatTime(value: string) {
 export function TaskList({ title, items }: { title: string; items?: string[] }) {
   if (!items || items.length === 0) return null;
   return (
-    <div>
-      <span className="text-muted-foreground font-semibold">{title}</span>
-      <ul className="list-disc pl-5">
+    <div className="flex flex-col gap-1.5">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <ul className="flex list-disc flex-col gap-1 pl-5 text-sm text-pretty marker:text-muted-foreground">
         {items.map((item, index) => (
           <li key={index}>{item}</li>
         ))}
@@ -38,101 +38,96 @@ export default function PlannerData({
   result,
   loading,
   error,
-  taskCount,
 }: {
   result: PlannerResult | null;
   loading: boolean;
   error: string | null;
-  taskCount: number;
 }) {
-  if (loading) return <div>Gerando plano de estudos...</div>;
-  if (error) return <div role="alert">{error}</div>;
-  if (!result)
+  if (loading)
     return (
-      <div className="flex flex-col">
-        <h1 className="font-semibold text-2xl text-foreground">
-          Você possui um total de {taskCount} tarefas para serem acrescentadas
-          na sua agenda
-        </h1>
-        {taskCount > MAX_TASKS_PER_PLAN && (
-          <p className="text-muted-foreground">
-            Cada plano inclui as {MAX_TASKS_PER_PLAN} tarefas com prazo mais
-            próximo. As outras ficam para o próximo plano.
-          </p>
-        )}
-        <h2 className="font-semibold text-gray-500">
-          Clique em &quot;Criar&quot; para gerar seu plano de estudos.
-        </h2>
-      </div>
+      <p role="status" className="text-sm text-muted-foreground">
+        Gerando o plano de estudos. Isso pode levar alguns minutos.
+      </p>
     );
+  if (error)
+    return (
+      <p
+        role="alert"
+        className="rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm text-destructive"
+      >
+        {error}
+      </p>
+    );
+  if (!result) return null;
 
   return (
-    <div className="flex flex-col gap-4 w-full">
+    <div className="flex flex-col gap-6">
       {result.summary.general_analysis && (
-        <Card className="w-full max-w-125">
-          <CardHeader>
-            <CardTitle>Análise geral</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground">
-              {result.summary.general_analysis}
-            </p>
-          </CardContent>
-        </Card>
+        <section className="flex max-w-prose flex-col gap-2">
+          <h2 className="text-lg font-semibold tracking-tight">Análise geral</h2>
+          <p className="text-pretty text-muted-foreground">
+            {result.summary.general_analysis}
+          </p>
+        </section>
       )}
 
       {/* generatePlan only returns tasks with one recommendation and at least one session. */}
-      {result.summary.study_recommendations.map((recommendation) => (
-        <Card
-          key={recommendation.task_id}
-          className="flex-col gap-4 w-full max-w-300"
-        >
-          <CardHeader>
-            <CardTitle>{recommendation.title}</CardTitle>
-            {recommendation.overview && (
-              <CardDescription>{recommendation.overview}</CardDescription>
-            )}
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <TaskList
-              title="Pré-requisitos"
-              items={recommendation.prerequisites}
-            />
-            <TaskList
-              title="Tópicos para estudar"
-              items={recommendation.topics_to_study}
-            />
-            <TaskList
-              title="Erros comuns"
-              items={recommendation.common_mistakes}
-            />
-            <TaskList title="Dicas de estudo" items={recommendation.study_tips} />
+      <div className="flex flex-col gap-4">
+        {result.summary.study_recommendations.map((recommendation) => (
+          <Card key={recommendation.task_id}>
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold">
+                {recommendation.title}
+              </CardTitle>
+              {recommendation.overview && (
+                <CardDescription className="max-w-prose text-pretty">
+                  {recommendation.overview}
+                </CardDescription>
+              )}
+            </CardHeader>
+            <CardContent className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+              <div className="grid gap-5 sm:grid-cols-2">
+                <TaskList
+                  title="Pré-requisitos"
+                  items={recommendation.prerequisites}
+                />
+                <TaskList
+                  title="Tópicos para estudar"
+                  items={recommendation.topics_to_study}
+                />
+                <TaskList
+                  title="Erros comuns"
+                  items={recommendation.common_mistakes}
+                />
+                <TaskList
+                  title="Dicas de estudo"
+                  items={recommendation.study_tips}
+                />
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <span className="text-muted-foreground font-semibold">
-                Sessões agendadas
-              </span>
-              {result.sessions
-                .filter((session) => session.task_id === recommendation.task_id)
-                .map((session, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col rounded-lg ring-1 ring-foreground/10 p-3 gap-1"
-                  >
-                    <div className="flex justify-items-start">
-                      <span>{formatDate(session.start_time)}:&nbsp;</span>
-                      <span>De: {formatTime(session.start_time)}</span>
-                      <span> &nbsp;às {formatTime(session.end_time)}</span>
-                    </div>
-                    <span className="text-muted-foreground">
-                      {session.reason}
-                    </span>
-                  </div>
-                ))}
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              <div className="flex flex-col gap-2">
+                <h3 className="text-sm font-semibold">Sessões agendadas</h3>
+                <ul className="flex flex-col gap-2">
+                  {result.sessions
+                    .filter((session) => session.task_id === recommendation.task_id)
+                    .map((session, index) => (
+                      <li
+                        key={index}
+                        className="flex flex-col gap-1 rounded-md bg-muted p-3 text-sm"
+                      >
+                        <span className="font-medium tabular-nums">
+                          {formatDate(session.start_time)}, {formatTime(session.start_time)} –{" "}
+                          {formatTime(session.end_time)}
+                        </span>
+                        <span className="text-muted-foreground">{session.reason}</span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import PlannerData from "../plannerData";
 import { Button } from "@/components/ui/button";
 import { generatePlan, type PlanFailure } from "../../actions";
-import type { PlannerResult } from "../../lib";
+import { MAX_TASKS_PER_PLAN, type PlannerResult } from "../../lib";
 
 const failureMessages: Record<PlanFailure, string> = {
   "sem-disponibilidade":
@@ -37,20 +37,30 @@ export default function PlannerClient({ taskCount }: { taskCount: number }) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row items-center md:items-start gap-16 px-10 pb-8 w-full">
-      <div className="w-full md:w-1/2 min-w-0 flex justify-center">
-        <PlannerData
-          result={result}
-          loading={loading}
-          error={error}
-          taskCount={taskCount}
-        />
-      </div>
-      <div className="w-full md:w-1/2 min-w-0 flex justify-center">
-        <Button onClick={handleGenerate} disabled={loading || taskCount === 0}>
-          {loading ? "Gerando..." : "Criar"}
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 pb-16 sm:px-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border bg-card p-5">
+        <div className="flex flex-col gap-1">
+          <p className="font-semibold">
+            {taskCount === 0
+              ? "Nenhuma tarefa na fila"
+              : taskCount === 1
+                ? "1 tarefa na fila"
+                : `${taskCount} tarefas na fila`}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {taskCount === 0
+              ? "Cadastre tarefas para gerar um novo plano."
+              : taskCount > MAX_TASKS_PER_PLAN
+                ? `Cada plano inclui as ${MAX_TASKS_PER_PLAN} tarefas com prazo mais próximo. As outras ficam para o próximo plano.`
+                : "O plano distribui as tarefas nos seus horários livres dos próximos 7 dias."}
+          </p>
+        </div>
+        <Button size="lg" onClick={handleGenerate} disabled={loading || taskCount === 0}>
+          {loading ? "Gerando plano..." : "Gerar plano"}
         </Button>
       </div>
+
+      <PlannerData result={result} loading={loading} error={error} />
     </div>
   );
 }

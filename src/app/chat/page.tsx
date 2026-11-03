@@ -6,7 +6,7 @@ export default async function ChatPage() {
   await auth.protect();
 
   return (
-    <div className="w-full">
+    <div>
       <Header
         title="Chat"
         subtitle="Tire dúvidas sobre suas tarefas e matérias com o assistente do planner."

@@ -42,11 +42,11 @@ export default function PlannerData({
 }: {
   result: PlannerResult | null;
   loading: boolean;
-  error: boolean;
+  error: string | null;
   taskCount: number;
 }) {
   if (loading) return <div>Gerando plano de estudos...</div>;
-  if (error) return <div>Não foi possível gerar o plano de estudos.</div>;
+  if (error) return <div role="alert">{error}</div>;
   if (!result)
     return (
       <div className="flex flex-col">

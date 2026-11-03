@@ -16,6 +16,9 @@ import {
   type AvailabilityWindow,
   type PlannerResult,
 } from "./lib";
+import { localNow } from "@/utils/data";
+
+export type PlanFailure = "sem-disponibilidade" | "sem-tarefas" | "falhou";
 
 type Task = typeof tarefaTable.$inferSelect;
 type Booked = { startTime: string; endTime: string };
@@ -213,7 +216,7 @@ async function aiPlanner({
 }
 
 export async function generatePlan(): Promise<
-  { ok: true; data: PlannerResult } | { ok: false }
+  { ok: true; data: PlannerResult } | { ok: false; reason: PlanFailure }
 > {
   const user_id = await requireUserId();
 
@@ -222,7 +225,7 @@ export async function generatePlan(): Promise<
     .from(disponibilidadeTable)
     .where(eq(disponibilidadeTable.user_id, user_id));
   const windows = buildAvailabilityWindows(availabilities, new Date());
-  if (windows.length === 0) return { ok: false };
+  if (windows.length === 0) return { ok: false, reason: "sem-disponibilidade" };
 
   // Claim the tasks in one statement, so a second tab or a double click can't plan them twice.
   const tasks = await db
@@ -235,7 +238,7 @@ export async function generatePlan(): Promise<
       ),
     )
     .returning();
-  if (tasks.length === 0) return { ok: false };
+  if (tasks.length === 0) return { ok: false, reason: "sem-tarefas" };
 
   let savedRecommendationIds: number[] = [];
   try {
@@ -267,7 +270,16 @@ export async function generatePlan(): Promise<
 
     const plan = await aiPlanner({ tasks, windows, booked });
 
-    const sessions = pickValidSessions(plan.sessions, windows, booked);
+    const today = localNow().date;
+    const sessions = pickValidSessions(
+      plan.sessions,
+      windows,
+      booked,
+      // Overdue tasks get no limit: studying late beats never being planned.
+      new Map(
+        tasks.filter((t) => t.due_date >= today).map((t) => [t.id, t.due_date]),
+      ),
+    );
     const recommendations = pickRecommendations(
       plan.summary.study_recommendations,
       sessions,
@@ -346,6 +358,6 @@ export async function generatePlan(): Promise<
           tasks.map((t) => t.id),
         ),
       );
-    return { ok: false };
+    return { ok: false, reason: "falhou" };
   }
 }

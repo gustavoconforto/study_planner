@@ -62,7 +62,7 @@ describe("generatePlan", () => {
   it("puts the claimed tasks back in the queue when the AI call fails", async () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    expect(await generatePlan()).toEqual({ ok: false });
+    expect(await generatePlan()).toEqual({ ok: false, reason: "falhou" });
 
     const statuses = calls
       .filter((steps) => steps[0].name === "update")

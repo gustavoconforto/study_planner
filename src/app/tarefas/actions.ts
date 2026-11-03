@@ -73,10 +73,14 @@ export async function updateTarefaStatus(
   status: (typeof TASK_STATUS)[number],
 ) {
   const user_id = await requireUserId();
+  const parsed = z
+    .object({ id: z.number().int(), status: z.enum(TASK_STATUS) })
+    .safeParse({ id, status });
+  if (!parsed.success) return { ok: false };
   try {
     await db
       .update(tarefaTable)
-      .set({ status })
+      .set({ status: parsed.data.status })
       .where(and(eq(tarefaTable.id, id), eq(tarefaTable.user_id, user_id)));
     revalidatePath("/tarefas");
     return { ok: true };

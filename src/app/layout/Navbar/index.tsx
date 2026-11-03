@@ -19,7 +19,7 @@ const menuItems: { href: string; title: string }[] = [
   },
   {
     href: "/chat",
-    title: "chat",
+    title: "Chat",
   },
 ];
 

@@ -57,25 +57,6 @@ export default function TarefaForm() {
   function handleSelectSubject(value: string | null) {
     if (value !== null) setSubject(value);
   }
-  function handleTitleInput(event: React.ChangeEvent<HTMLInputElement>) {
-    setTitle(event.target.value);
-  }
-  function handleDescriptionInput(
-    event: React.ChangeEvent<HTMLTextAreaElement>,
-  ) {
-    setDescription(event.target.value);
-  }
-  function handleThemeInput(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    setTheme(event.target.value);
-  }
-  function handleEstimatedMinutesInput(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) {
-    setEstimatedMinutes(event.target.value);
-  }
-  function handleDueDateInput(event: React.ChangeEvent<HTMLInputElement>) {
-    setDueDate(event.target.value);
-  }
 
   async function handleSaveButton() {
     setFeedback(null);
@@ -128,7 +109,7 @@ export default function TarefaForm() {
             id="title"
             placeholder="Título da tarefa"
             value={title}
-            onChange={handleTitleInput}
+            onChange={(event) => setTitle(event.target.value)}
             aria-invalid={!!errors.title}
           />
           <FieldError errors={errors.title?.map((message) => ({ message }))} />
@@ -140,7 +121,7 @@ export default function TarefaForm() {
             id="theme"
             placeholder="Descreva o tema do conteúdo a ser estudado"
             value={theme}
-            onChange={handleThemeInput}
+            onChange={(event) => setTheme(event.target.value)}
             aria-invalid={!!errors.theme}
           />
           <FieldError errors={errors.theme?.map((message) => ({ message }))} />
@@ -153,7 +134,7 @@ export default function TarefaForm() {
             maxLength={2000}
             placeholder="Descreva a tarefa"
             value={description}
-            onChange={handleDescriptionInput}
+            onChange={(event) => setDescription(event.target.value)}
             aria-invalid={!!errors.description}
           />
           <FieldError
@@ -244,7 +225,7 @@ export default function TarefaForm() {
             min={1}
             placeholder="60"
             value={estimatedMinutes}
-            onChange={handleEstimatedMinutesInput}
+            onChange={(event) => setEstimatedMinutes(event.target.value)}
             aria-invalid={!!errors.estimated_minutes}
           />
           <FieldError
@@ -258,7 +239,7 @@ export default function TarefaForm() {
             id="due_date"
             type="date"
             value={dueDate}
-            onChange={handleDueDateInput}
+            onChange={(event) => setDueDate(event.target.value)}
             aria-invalid={!!errors.due_date}
           />
           <FieldError

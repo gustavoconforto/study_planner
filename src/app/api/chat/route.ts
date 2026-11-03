@@ -74,14 +74,18 @@ export async function POST(request: Request) {
     .limit(15);
   const instructions = buildChatInstructions(tasks);
 
-  const stream = await openai.responses.create({
-    model: "gpt-5.6-terra",
-    instructions,
-    input: parsed.data.messages,
-    // Includes reasoning tokens, so keep room for a full answer.
-    max_output_tokens: 8000,
-    stream: true,
-  });
+  const stream = await openai.responses.create(
+    {
+      model: "gpt-5.6-terra",
+      instructions,
+      input: parsed.data.messages,
+      // Includes reasoning tokens, so keep room for a full answer.
+      max_output_tokens: 8000,
+      stream: true,
+    },
+    // Student closed the tab: stop generating (and paying for) the answer.
+    { signal: request.signal },
+  );
 
   const encoder = new TextEncoder();
   const responseBody = new ReadableStream<Uint8Array>({

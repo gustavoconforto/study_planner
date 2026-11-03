@@ -20,6 +20,8 @@ import { localNow } from "@/utils/data";
 
 export type PlanFailure = "sem-disponibilidade" | "sem-tarefas" | "falhou";
 
+const MAX_TASKS_PER_PLAN = 20;
+
 type Task = typeof tarefaTable.$inferSelect;
 type Booked = { startTime: string; endTime: string };
 
@@ -229,13 +231,26 @@ export async function generatePlan(): Promise<
   if (windows.length === 0) return { ok: false, reason: "sem-disponibilidade" };
 
   // Claim the tasks in one statement, so a second tab or a double click can't plan them twice.
+  // Only the nearest deadlines: the prompt and the answer grow with every task. The rest wait for the next run.
+  const queued = and(
+    eq(tarefaTable.user_id, user_id),
+    eq(tarefaTable.status, "CADASTRADO"),
+  );
   const tasks = await db
     .update(tarefaTable)
     .set({ status: "AGENDADO" })
     .where(
       and(
-        eq(tarefaTable.user_id, user_id),
-        eq(tarefaTable.status, "CADASTRADO"),
+        queued,
+        inArray(
+          tarefaTable.id,
+          db
+            .select({ id: tarefaTable.id })
+            .from(tarefaTable)
+            .where(queued)
+            .orderBy(tarefaTable.due_date)
+            .limit(MAX_TASKS_PER_PLAN),
+        ),
       ),
     )
     .returning();

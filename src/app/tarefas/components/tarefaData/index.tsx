@@ -14,7 +14,7 @@ export default async function TarefaData() {
     <div className="flex flex-col gap-4">
       {tarefas.map((tarefa) => {
         return (
-          <Card key={tarefa.id} className="flex-col gap-4 w-125">
+          <Card key={tarefa.id} className="flex-col gap-4 w-full max-w-125">
             <CardHeader>
               <CardTitle>{tarefa.title}</CardTitle>
             </CardHeader>

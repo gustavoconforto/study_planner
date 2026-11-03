@@ -89,16 +89,22 @@ export const agendamentoTable = pgTable(
     reason: text().notNull(),
   },
   // Agenda and planner read one user's upcoming sessions; past rows are kept forever.
-  (t) => [index().on(t.user_id, t.end_time)],
+  // recomentation_id: Postgres doesn't index foreign keys, and every re-plan cascades a delete through it.
+  (t) => [index().on(t.user_id, t.end_time), index().on(t.recomentation_id)],
 );
 
-export const recomendacaoTable = pgTable("recommendations", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  task_id: integer().references(() => tarefaTable.id, { onDelete: "cascade" }),
-  title: varchar({ length: 255 }).notNull(),
-  overview: text().notNull(),
-  prerequisites: text().array().notNull(),
-  topics_to_study: text().array().notNull(),
-  common_mistakes: text().array().notNull(),
-  study_tips: text().array().notNull(),
-});
+export const recomendacaoTable = pgTable(
+  "recommendations",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    task_id: integer().references(() => tarefaTable.id, { onDelete: "cascade" }),
+    title: varchar({ length: 255 }).notNull(),
+    overview: text().notNull(),
+    prerequisites: text().array().notNull(),
+    topics_to_study: text().array().notNull(),
+    common_mistakes: text().array().notNull(),
+    study_tips: text().array().notNull(),
+  },
+  // generatePlan deletes old plans by task_id, and deleting a task cascades through it.
+  (t) => [index().on(t.task_id)],
+);

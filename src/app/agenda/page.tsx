@@ -15,14 +15,13 @@ export default async function AgendaPage() {
 
   const schedules = await getSchedules();
 
+  // Postgres sends "YYYY-MM-DD HH:MM:SS".
   function extractDayTimeFromTimestamp(dateTime: string) {
-    const [date, time] = dateTime.trim().split(" ");
     return {
-      day: date.split("-")[2],
-      month: date.split("-")[1],
-      year: date.split("-")[0],
-      hour: time.split(":")[0],
-      minute: time.split(":")[1],
+      day: dateTime.slice(8, 10),
+      month: dateTime.slice(5, 7),
+      hour: dateTime.slice(11, 13),
+      minute: dateTime.slice(14, 16),
     };
   }
 

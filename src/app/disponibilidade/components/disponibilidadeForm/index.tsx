@@ -22,7 +22,7 @@ import { saveDisponibilidade, type DisponibilidadeErrors } from "../../actions";
 import { weekDays } from "@/utils/data";
 
 export default function DisponibilidadeForm() {
-  const [weekday, setWeekDay] = useState(10);
+  const [weekday, setWeekDay] = useState<number | null>(null);
   const [start, setStart] = useState("00:00");
   const [finish, setFinish] = useState("00:00");
   const [errors, setErrors] = useState<DisponibilidadeErrors>({});
@@ -31,16 +31,6 @@ export default function DisponibilidadeForm() {
     type: "success" | "error";
     message: string;
   } | null>(null);
-
-  function handleSelectDiaDaSemana(value: number | null) {
-    if (value !== null) setWeekDay(value);
-  }
-  function handleStartInput(event: React.ChangeEvent<HTMLInputElement>) {
-    setStart(event.target.value);
-  }
-  function handleFinishInput(event: React.ChangeEvent<HTMLInputElement>) {
-    setFinish(event.target.value);
-  }
 
   async function handleSaveButton() {
     setFeedback(null);
@@ -54,7 +44,7 @@ export default function DisponibilidadeForm() {
           type: "success",
           message: "Disponibilidade salva com sucesso!",
         });
-        setWeekDay(10);
+        setWeekDay(null);
         setStart("00:00");
         setFinish("00:00");
       } else if (Object.keys(response.errors).length === 0) {
@@ -81,8 +71,8 @@ export default function DisponibilidadeForm() {
           <FieldLabel htmlFor="weekday">Dia da semana</FieldLabel>
           <Select
             items={weekDays}
-            value={weekday === 10 ? null : weekday}
-            onValueChange={handleSelectDiaDaSemana}
+            value={weekday}
+            onValueChange={(value) => setWeekDay(value)}
           >
             <SelectTrigger id="weekday" className="w-full">
               <SelectValue placeholder="Selecione um dia" />
@@ -109,7 +99,7 @@ export default function DisponibilidadeForm() {
             type="time"
             placeholder="00:00"
             value={start}
-            onChange={handleStartInput}
+            onChange={(event) => setStart(event.target.value)}
             aria-invalid={!!errors.start}
           />
           <FieldError errors={errors.start?.map((message) => ({ message }))} />
@@ -122,7 +112,7 @@ export default function DisponibilidadeForm() {
             placeholder="00:00"
             type="time"
             value={finish}
-            onChange={handleFinishInput}
+            onChange={(event) => setFinish(event.target.value)}
             aria-invalid={!!errors.finish}
           />
           <FieldError errors={errors.finish?.map((message) => ({ message }))} />

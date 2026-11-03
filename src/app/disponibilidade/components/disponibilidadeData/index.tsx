@@ -7,9 +7,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { readDisponibilidade } from "../../actions";
+import { deleteDisponibilidade, readDisponibilidade } from "../../actions";
 import { getWeekDayName, weekDays } from "@/utils/data";
-import DisponibilidadeDeleteButton from "../disponibilidadeDeleteButton";
+import { DeleteButton } from "@/components/delete-button";
 
 function timeToMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
@@ -81,7 +81,10 @@ export default async function DisponibilidadeData() {
                 <TableCell className="text-center">{disp.start}</TableCell>
                 <TableCell className="text-center">{disp.finish}</TableCell>
                 <TableCell className="text-center">
-                  <DisponibilidadeDeleteButton id={disp.id} />
+                  <DeleteButton
+                    action={deleteDisponibilidade.bind(null, disp.id)}
+                    label="Excluir disponibilidade"
+                  />
                 </TableCell>
               </TableRow>
             );

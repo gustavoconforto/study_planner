@@ -5,7 +5,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import type { PlannerResult } from "../../lib";
+import { MAX_TASKS_PER_PLAN, type PlannerResult } from "../../lib";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString("pt-BR", {
@@ -54,6 +54,12 @@ export default function PlannerData({
           Você possui um total de {taskCount} tarefas para serem acrescentadas
           na sua agenda
         </h1>
+        {taskCount > MAX_TASKS_PER_PLAN && (
+          <p className="text-muted-foreground">
+            Cada plano inclui as {MAX_TASKS_PER_PLAN} tarefas com prazo mais
+            próximo. As outras ficam para o próximo plano.
+          </p>
+        )}
         <h2 className="font-semibold text-gray-500">
           Clique em &quot;Criar&quot; para gerar seu plano de estudos.
         </h2>

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { readTarefas } from "../../actions";
-import { DeleteTarefaButton } from "./DeleteTarefaButton";
+import { deleteTarefa, readTarefas } from "../../actions";
+import { DeleteButton } from "@/components/delete-button";
 import TaskStatus from "../tarefaStatus";
 
 function formatDueDate(due_date: string) {
@@ -26,7 +26,10 @@ export default async function TarefaData() {
                   </span>
                   <span>{tarefa.subject}</span>
                 </div>
-                <DeleteTarefaButton id={tarefa.id} />
+                <DeleteButton
+                  action={deleteTarefa.bind(null, tarefa.id)}
+                  label="Excluir tarefa"
+                />
               </div>
               <div className="flex justify-items-start">
                 <span className="text-muted-foreground font-semibold">

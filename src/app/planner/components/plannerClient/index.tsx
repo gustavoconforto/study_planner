@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import PlannerData from "../plannerData";
 import { Button } from "@/components/ui/button";
 import { generatePlan, type PlanFailure } from "../../actions";
@@ -17,6 +18,7 @@ export default function PlannerClient({ taskCount }: { taskCount: number }) {
   const [result, setResult] = useState<PlannerResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   async function handleGenerate() {
     setLoading(true);
@@ -25,6 +27,8 @@ export default function PlannerClient({ taskCount }: { taskCount: number }) {
       const response = await generatePlan();
       if (response.ok) setResult(response.data);
       else setError(failureMessages[response.reason]);
+      // Reload taskCount: tasks past the limit, or that didn't fit, are still waiting.
+      router.refresh();
     } catch {
       setError(failureMessages.falhou);
     } finally {
@@ -43,8 +47,7 @@ export default function PlannerClient({ taskCount }: { taskCount: number }) {
         />
       </div>
       <div className="w-full md:w-1/2 min-w-0 flex justify-center">
-        {/* Once a plan is shown its tasks are planned; a second run would only replace it with "no tasks". */}
-        <Button onClick={handleGenerate} disabled={loading || result !== null}>
+        <Button onClick={handleGenerate} disabled={loading || taskCount === 0}>
           {loading ? "Gerando..." : "Criar"}
         </Button>
       </div>

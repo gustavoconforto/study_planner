@@ -1,5 +1,8 @@
 import { getWeekDayName, localNow } from "@/utils/data";
 
+// One run plans only the nearest deadlines: the prompt and the answer grow with every task.
+export const MAX_TASKS_PER_PLAN = 20;
+
 export type StudyRecommendation = {
   task_id: number;
   title: string;

@@ -11,7 +11,7 @@ const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
 const disponibilidadeSchema = z
   .object({
     weekday: z
-      .number()
+      .number("Selecione um dia da semana")
       .int("Selecione um dia da semana")
       .min(0, "Selecione um dia da semana")
       .max(6, "Selecione um dia da semana"),

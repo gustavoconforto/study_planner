@@ -15,12 +15,11 @@ import {
   pickRecommendations,
   type AvailabilityWindow,
   type PlannerResult,
+  MAX_TASKS_PER_PLAN,
 } from "./lib";
 import { localNow } from "@/utils/data";
 
 export type PlanFailure = "sem-disponibilidade" | "sem-tarefas" | "falhou";
-
-const MAX_TASKS_PER_PLAN = 20;
 
 type Task = typeof tarefaTable.$inferSelect;
 type Booked = { startTime: string; endTime: string };

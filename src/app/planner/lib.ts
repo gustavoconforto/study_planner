@@ -1,0 +1,136 @@
+import { getWeekDayName, localNow } from "@/utils/data";
+
+// One run plans only the nearest deadlines: the prompt and the answer grow with every task.
+export const MAX_TASKS_PER_PLAN = 20;
+
+export type StudyRecommendation = {
+  task_id: number;
+  title: string;
+  overview: string;
+  prerequisites: string[];
+  topics_to_study: string[];
+  common_mistakes: string[];
+  study_tips: string[];
+};
+
+export type Session = {
+  task_id: number;
+  title: string;
+  start_time: string;
+  end_time: string;
+  reason: string;
+};
+
+export type PlannerResult = {
+  summary: {
+    general_analysis: string;
+    study_recommendations: StudyRecommendation[];
+  };
+  sessions: Session[];
+};
+
+export type AvailabilityWindow = {
+  date: string;
+  weekday_name: string;
+  start: string;
+  finish: string;
+};
+
+// Expands the weekly availability into concrete slots for the next `days` days,
+// in the student's time zone, without slots (or parts of slots) that already passed.
+export function buildAvailabilityWindows(
+  availabilities: { weekday: number; start: string; finish: string }[],
+  now: Date,
+  days = 7,
+) {
+  const today = localNow(now);
+  const windows: AvailabilityWindow[] = [];
+
+  for (let i = 0; i < days; i++) {
+    const day = new Date(`${today.date}T00:00:00Z`);
+    day.setUTCDate(day.getUTCDate() + i);
+    const date = day.toISOString().slice(0, 10);
+    const weekday = day.getUTCDay();
+
+    const slots = availabilities
+      .filter((a) => a.weekday === weekday)
+      .map((a) => ({ start: a.start.slice(0, 5), finish: a.finish.slice(0, 5) }))
+      .sort((a, b) => a.start.localeCompare(b.start));
+
+    for (const slot of slots) {
+      if (i === 0 && slot.finish <= today.time) continue;
+      const start =
+        i === 0 && slot.start < today.time ? today.time : slot.start;
+      const last = windows[windows.length - 1];
+      // Back-to-back or overlapping blocks become one window, so a session can span them.
+      if (last?.date === date && start <= last.finish) {
+        if (slot.finish > last.finish) last.finish = slot.finish;
+        continue;
+      }
+      windows.push({
+        date,
+        weekday_name: getWeekDayName(weekday),
+        start,
+        finish: slot.finish,
+      });
+    }
+  }
+
+  return windows;
+}
+
+const DATE_TIME = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?$/;
+// "2026-11-03T14:00:00" and "2026-11-03 14:00:00" -> "2026-11-03T14:00", comparable as strings.
+const minute = (value: string) => value.replace(" ", "T").slice(0, 16);
+
+// The AI is only asked to respect availability, booked time and due dates; keep only the sessions that really do.
+// `dueDates` maps task id -> "YYYY-MM-DD"; a task missing from it has no date limit.
+export function pickValidSessions(
+  sessions: Session[],
+  windows: AvailabilityWindow[],
+  booked: { startTime: string; endTime: string }[],
+  dueDates: Map<number, string>,
+) {
+  const taken = booked.map((b) => [minute(b.startTime), minute(b.endTime)]);
+  const valid: Session[] = [];
+
+  for (const session of sessions) {
+    if (
+      !DATE_TIME.test(session.start_time) ||
+      !DATE_TIME.test(session.end_time)
+    )
+      continue;
+    const start = minute(session.start_time);
+    const end = minute(session.end_time);
+    const date = start.slice(0, 10);
+    if (end.slice(0, 10) !== date || start >= end) continue;
+    const due = dueDates.get(session.task_id);
+    if (due && date > due) continue;
+
+    const fits = windows.some(
+      (w) =>
+        w.date === date &&
+        `${date}T${w.start}` <= start &&
+        end <= `${date}T${w.finish}`,
+    );
+    const overlaps = taken.some(([s, e]) => start < e && s < end);
+    if (!fits || overlaps) continue;
+
+    taken.push([start, end]);
+    valid.push(session);
+  }
+
+  return valid;
+}
+
+// One recommendation per task, and only for tasks that kept at least one valid session.
+export function pickRecommendations(
+  recommendations: StudyRecommendation[],
+  sessions: Session[],
+) {
+  return recommendations.filter(
+    (r, i, all) =>
+      sessions.some((s) => s.task_id === r.task_id) &&
+      all.findIndex((other) => other.task_id === r.task_id) === i,
+  );
+}

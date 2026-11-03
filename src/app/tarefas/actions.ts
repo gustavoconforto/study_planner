@@ -1,119 +1,105 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/src/db/db";
 import {
   tarefaTable,
-  recomendacaoTable,
   TASK_TYPE,
   TASK_DIFICULTY,
   TASK_SUBJECT,
   TASK_STATUS,
 } from "@/src/db/schema";
-import { eq } from "drizzle-orm";
+import { requireUserId } from "@/lib/auth";
 
-type readTarefasParams = {
-  userEmail: string;
-};
+const tarefaSchema = z.object({
+  type: z.enum(TASK_TYPE, "Selecione um tipo de tarefa"),
+  dificulty: z.enum(TASK_DIFICULTY, "Selecione a dificuldade"),
+  subject: z.enum(TASK_SUBJECT, "Selecione a matéria"),
+  theme: z
+    .string()
+    .min(1, "Informe o tema")
+    .max(255, "O tema deve ter no máximo 255 caracteres"),
+  title: z
+    .string()
+    .min(1, "Informe um título")
+    .max(255, "O título deve ter no máximo 255 caracteres"),
+  // Every chat message and plan resends all descriptions to OpenAI, so this caps their cost.
+  description: z
+    .string()
+    .min(1, "Informe uma descrição")
+    .max(2000, "A descrição deve ter no máximo 2000 caracteres"),
+  estimated_minutes: z
+    .number()
+    .int("Informe uma estimativa de tempo válida")
+    .min(1, "Informe uma estimativa de tempo válida")
+    .max(10000, "Informe uma estimativa de tempo válida"),
+  due_date: z.iso.date("Informe uma data de entrega válida"),
+});
 
-type saveTarefaParams = {
-  email: string;
-  type: (typeof TASK_TYPE)[number];
-  dificulty: (typeof TASK_DIFICULTY)[number];
-  theme: string;
-  subject: (typeof TASK_SUBJECT)[number];
-  title: string;
-  description: string;
-  estimated_minutes: number;
-  due_date: string;
-};
+export type TarefaErrors = Partial<
+  Record<keyof z.infer<typeof tarefaSchema>, string[]>
+>;
 
-export async function saveTarefa(params: saveTarefaParams) {
+export async function saveTarefa(
+  input: Record<keyof z.infer<typeof tarefaSchema>, unknown>,
+): Promise<{ ok: true } | { ok: false; errors: TarefaErrors }> {
+  const user_id = await requireUserId();
+  const parsed = tarefaSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, errors: z.flattenError(parsed.error).fieldErrors };
+  }
   try {
-    await db.insert(tarefaTable).values({
-      type: params.type,
-      dificulty: params.dificulty,
-      subject: params.subject,
-      status: "CADASTRADO",
-      theme: params.theme,
-      student_email: params.email,
-      title: params.title,
-      description: params.description,
-      estimated_minutes: params.estimated_minutes,
-      due_date: params.due_date,
-    });
-    revalidatePath("tarefas");
-    return {
-      ok: true,
-    };
+    await db
+      .insert(tarefaTable)
+      .values({ ...parsed.data, user_id, status: "CADASTRADO" });
+    revalidatePath("/tarefas");
+    return { ok: true };
   } catch {
-    return {
-      ok: false,
-    };
+    return { ok: false, errors: {} };
   }
 }
 
-export async function readTarefas(params: readTarefasParams) {
-  const result = await db
+export async function readTarefas() {
+  const user_id = await requireUserId();
+  return db
     .select()
     .from(tarefaTable)
-    .where(eq(tarefaTable.student_email, params.userEmail))
+    .where(eq(tarefaTable.user_id, user_id))
     .orderBy(tarefaTable.due_date);
-
-  if (result) {
-    return {
-      ok: true,
-      data: result,
-    };
-  }
-  return {
-    ok: false,
-    data: undefined,
-  };
 }
 
 export async function updateTarefaStatus(
   id: number,
   status: (typeof TASK_STATUS)[number],
 ) {
-  try {
-    await db.update(tarefaTable).set({ status }).where(eq(tarefaTable.id, id));
-    revalidatePath("tarefas");
-    return {
-      ok: true,
-    };
-  } catch {
-    return {
-      ok: false,
-    };
-  }
-}
-
-export async function deleteTarefa(id: number) {
-  try {
-    await db.delete(tarefaTable).where(eq(tarefaTable.id, id));
-    revalidatePath("tarefas");
-    return {
-      ok: true,
-    };
-  } catch {
-    return {
-      ok: false,
-    };
-  }
-}
-
-export async function deleteRecommendation(title: string) {
+  const user_id = await requireUserId();
+  const parsed = z
+    .object({ id: z.number().int(), status: z.enum(TASK_STATUS) })
+    .safeParse({ id, status });
+  if (!parsed.success) return { ok: false };
   try {
     await db
-      .delete(recomendacaoTable)
-      .where(eq(recomendacaoTable.title, title));
-    revalidatePath("tarefas");
-    return {
-      ok: true,
-    };
+      .update(tarefaTable)
+      .set({ status: parsed.data.status })
+      .where(and(eq(tarefaTable.id, id), eq(tarefaTable.user_id, user_id)));
+    revalidatePath("/tarefas");
+    return { ok: true };
   } catch {
-    return {
-      ok: false,
-    };
+    return { ok: false };
+  }
+}
+
+// The task's recommendation and sessions go with it (onDelete: "cascade").
+export async function deleteTarefa(id: number) {
+  const user_id = await requireUserId();
+  try {
+    await db
+      .delete(tarefaTable)
+      .where(and(eq(tarefaTable.id, id), eq(tarefaTable.user_id, user_id)));
+    revalidatePath("/tarefas");
+    return { ok: true };
+  } catch {
+    return { ok: false };
   }
 }

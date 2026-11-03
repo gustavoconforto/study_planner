@@ -5,31 +5,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-type StudyRecommendation = {
-  task_id: number;
-  title: string;
-  overview: string;
-  prerequisites: string[];
-  topics_to_study: string[];
-  common_mistakes: string[];
-  study_tips: string[];
-};
-
-type Session = {
-  task_id: number;
-  title: string;
-  start_time: string;
-  end_time: string;
-  reason: string;
-};
-
-export type PlannerResult = {
-  summary: {
-    general_analysis: string;
-    study_recommendations: StudyRecommendation[];
-  };
-  sessions: Session[];
-};
+import { MAX_TASKS_PER_PLAN, type PlannerResult } from "../../lib";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString("pt-BR", {
@@ -44,7 +20,7 @@ function formatTime(value: string) {
   });
 }
 
-function TaskList({ title, items }: { title: string; items?: string[] }) {
+export function TaskList({ title, items }: { title: string; items?: string[] }) {
   if (!items || items.length === 0) return null;
   return (
     <div>
@@ -66,11 +42,11 @@ export default function PlannerData({
 }: {
   result: PlannerResult | null;
   loading: boolean;
-  error: boolean;
+  error: string | null;
   taskCount: number;
 }) {
   if (loading) return <div>Gerando plano de estudos...</div>;
-  if (error) return <div>Não foi possível gerar o plano de estudos.</div>;
+  if (error) return <div role="alert">{error}</div>;
   if (!result)
     return (
       <div className="flex flex-col">
@@ -78,32 +54,22 @@ export default function PlannerData({
           Você possui um total de {taskCount} tarefas para serem acrescentadas
           na sua agenda
         </h1>
+        {taskCount > MAX_TASKS_PER_PLAN && (
+          <p className="text-muted-foreground">
+            Cada plano inclui as {MAX_TASKS_PER_PLAN} tarefas com prazo mais
+            próximo. As outras ficam para o próximo plano.
+          </p>
+        )}
         <h2 className="font-semibold text-gray-500">
           Clique em &quot;Criar&quot; para gerar seu plano de estudos.
         </h2>
       </div>
     );
 
-  const recommendationsByTask = new Map<number, StudyRecommendation>();
-  result.summary?.study_recommendations?.forEach((recommendation) => {
-    recommendationsByTask.set(recommendation.task_id, recommendation);
-  });
-
-  const sessionsByTask = new Map<number, Session[]>();
-  result.sessions?.forEach((session) => {
-    const sessions = sessionsByTask.get(session.task_id) ?? [];
-    sessions.push(session);
-    sessionsByTask.set(session.task_id, sessions);
-  });
-
-  const taskIds = Array.from(
-    new Set([...recommendationsByTask.keys(), ...sessionsByTask.keys()]),
-  );
-
   return (
     <div className="flex flex-col gap-4 w-full">
-      {result.summary?.general_analysis && (
-        <Card className="w-125">
+      {result.summary.general_analysis && (
+        <Card className="w-full max-w-125">
           <CardHeader>
             <CardTitle>Análise geral</CardTitle>
           </CardHeader>
@@ -115,68 +81,58 @@ export default function PlannerData({
         </Card>
       )}
 
-      {taskIds.map((taskId) => {
-        const recommendation = recommendationsByTask.get(taskId);
-        const sessions = sessionsByTask.get(taskId) ?? [];
+      {/* generatePlan only returns tasks with one recommendation and at least one session. */}
+      {result.summary.study_recommendations.map((recommendation) => (
+        <Card
+          key={recommendation.task_id}
+          className="flex-col gap-4 w-full max-w-300"
+        >
+          <CardHeader>
+            <CardTitle>{recommendation.title}</CardTitle>
+            {recommendation.overview && (
+              <CardDescription>{recommendation.overview}</CardDescription>
+            )}
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <TaskList
+              title="Pré-requisitos"
+              items={recommendation.prerequisites}
+            />
+            <TaskList
+              title="Tópicos para estudar"
+              items={recommendation.topics_to_study}
+            />
+            <TaskList
+              title="Erros comuns"
+              items={recommendation.common_mistakes}
+            />
+            <TaskList title="Dicas de estudo" items={recommendation.study_tips} />
 
-        return (
-          <Card key={taskId} className="flex-col gap-4 w-300">
-            <CardHeader>
-              <CardTitle>
-                {recommendation?.title ?? sessions[0]?.title}
-              </CardTitle>
-              {recommendation?.overview && (
-                <CardDescription>{recommendation.overview}</CardDescription>
-              )}
-            </CardHeader>
-            <CardContent className="flex flex-col gap-4">
-              {recommendation && (
-                <>
-                  <TaskList
-                    title="Pré-requisitos"
-                    items={recommendation.prerequisites}
-                  />
-                  <TaskList
-                    title="Tópicos para estudar"
-                    items={recommendation.topics_to_study}
-                  />
-                  <TaskList
-                    title="Erros comuns"
-                    items={recommendation.common_mistakes}
-                  />
-                  <TaskList
-                    title="Dicas de estudo"
-                    items={recommendation.study_tips}
-                  />
-                </>
-              )}
-
-              {sessions.length > 0 && (
-                <div className="flex flex-col gap-2">
-                  <span className="text-muted-foreground font-semibold">
-                    Sessões agendadas
-                  </span>
-                  {sessions.map((session, index) => (
-                    <div
-                      key={index}
-                      className="flex flex-col rounded-lg ring-1 ring-foreground/10 p-3 gap-1"
-                    >
-                      <div className="flex justify-items-start">
-                        <span>{formatDate(session.start_time)}:&nbsp;</span>
-                        <span>De: {formatTime(session.start_time)}</span>
-                        <span> &nbsp;às {formatTime(session.end_time)}</span>
-                      </div>
-                      <span className="text-muted-foreground">
-                        {session.reason}
-                      </span>
+            <div className="flex flex-col gap-2">
+              <span className="text-muted-foreground font-semibold">
+                Sessões agendadas
+              </span>
+              {result.sessions
+                .filter((session) => session.task_id === recommendation.task_id)
+                .map((session, index) => (
+                  <div
+                    key={index}
+                    className="flex flex-col rounded-lg ring-1 ring-foreground/10 p-3 gap-1"
+                  >
+                    <div className="flex justify-items-start">
+                      <span>{formatDate(session.start_time)}:&nbsp;</span>
+                      <span>De: {formatTime(session.start_time)}</span>
+                      <span> &nbsp;às {formatTime(session.end_time)}</span>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
+                    <span className="text-muted-foreground">
+                      {session.reason}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

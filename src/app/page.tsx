@@ -1,7 +1,8 @@
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { RiCalendarLine, RiTaskLine, RiLineChartLine } from "@remixicon/react";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 import Header from "@/src/app/layout/PageHeader";
 import Footer from "@/src/app/layout/Footer";
 
@@ -44,19 +45,11 @@ export default async function Home() {
 
   return (
     <div className="w-full">
-      {user != null ? (
-        <Header
-          title={`Bem vindo(a) ${user.username}. Organize sua agenda em um só lugar`}
-          subtitle="Crie cronogramas, distribua tarefas e acompanhe o progresso de cada turma em tempo real em uma interface simples e objetiva."
-          actions={true}
-        />
-      ) : (
-        <Header
-          title={`Bem vindo(a) Organize sua agenda em um só lugar`}
-          subtitle="Crie cronogramas, distribua tarefas e acompanhe o progresso de cada turma em tempo real em uma interface simples e objetiva."
-          actions={true}
-        />
-      )}
+      <Header
+        title={`Bem vindo(a)${user?.firstName ? ` ${user.firstName}.` : ""} Organize sua agenda em um só lugar`}
+        subtitle="Crie cronogramas, distribua tarefas e acompanhe o progresso de cada turma em tempo real em uma interface simples e objetiva."
+        actions={true}
+      />
 
       <div className="flex flex-col md:flex-row gap-16 px-20 pb-8">
         <div>
@@ -98,15 +91,18 @@ export default async function Home() {
                   Crie sua agenda em poucos minutos.
                 </p>
               </div>
-              <Button variant="destructive" size="lg">
+              <Link
+                href="/disponibilidade"
+                className={buttonVariants({ variant: "destructive", size: "lg" })}
+              >
                 Começar agora
-              </Button>
+              </Link>
             </div>
           </div>
         </div>
 
         <div>
-          <div className="flex flex-col gap-5 px-4">
+          <div id="como-funciona" className="flex flex-col gap-5 px-4">
             <h3 className="text-xl font-semibold">Como funciona</h3>
             <ol className="flex flex-col gap-5">
               {steps.map((step, index) => (

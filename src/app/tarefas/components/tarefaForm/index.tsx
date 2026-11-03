@@ -18,9 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { saveTarefa } from "../../actions";
+import { saveTarefa, type TarefaErrors } from "../../actions";
 import { TASK_TYPE, TASK_DIFICULTY, TASK_SUBJECT } from "@/src/db/schema";
 
 const taskTypeItems = TASK_TYPE.map((type) => ({ label: type, value: type }));
@@ -33,37 +32,7 @@ const taskSubjectItems = TASK_SUBJECT.map((subject) => ({
   value: subject,
 }));
 
-const tarefaSchema = z.object({
-  type: z.enum(TASK_TYPE, "Selecione um tipo de tarefa"),
-  dificulty: z.enum(TASK_DIFICULTY, "Selecione a dificuldade"),
-  subject: z.enum(TASK_SUBJECT, "Selecione a matéria"),
-  theme: z.string().min(1, "Informe o tema"),
-  title: z
-    .string()
-    .min(1, "Informe um título")
-    .max(255, "O título deve ter no máximo 255 caracteres"),
-  description: z.string().min(1, "Informe uma descrição"),
-  estimated_minutes: z
-    .number()
-    .min(1, "Informe uma estimativa de tempo válida"),
-  due_date: z.iso.date("Informe uma data de entrega válida"),
-});
-
-type TarefaErrors = Partial<
-  Record<
-    | "type"
-    | "dificulty"
-    | "subject"
-    | "title"
-    | "theme"
-    | "description"
-    | "estimated_minutes"
-    | "due_date",
-    string[]
-  >
->;
-
-export default function TarefaForm({ userEmail }: { userEmail: string }) {
+export default function TarefaForm() {
   const [type, setType] = useState("");
   const [dificulty, setDificulty] = useState("");
   const [subject, setSubject] = useState("");
@@ -88,69 +57,25 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
   function handleSelectSubject(value: string | null) {
     if (value !== null) setSubject(value);
   }
-  function handleTitleInput(event: React.ChangeEvent<HTMLInputElement>) {
-    setTitle(event.target.value);
-  }
-  function handleDescriptionInput(
-    event: React.ChangeEvent<HTMLTextAreaElement>,
-  ) {
-    setDescription(event.target.value);
-  }
-  function handleThemeInput(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    setTheme(event.target.value);
-  }
-  function handleEstimatedMinutesInput(
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) {
-    setEstimatedMinutes(event.target.value);
-  }
-  function handleDueDateInput(event: React.ChangeEvent<HTMLInputElement>) {
-    setDueDate(event.target.value);
-  }
 
   async function handleSaveButton() {
-    const result = tarefaSchema.safeParse({
-      type,
-      dificulty,
-      subject,
-      title,
-      theme,
-      description,
-      estimated_minutes: Number(estimatedMinutes),
-      due_date: dueDate,
-    });
-
-    if (!result.success) {
-      setErrors(z.flattenError(result.error).fieldErrors);
-      setFeedback(null);
-      return;
-    }
-
-    setErrors({});
     setFeedback(null);
     setIsSaving(true);
     try {
       const response = await saveTarefa({
-        email: userEmail,
-        type: result.data.type,
-        dificulty: result.data.dificulty,
-        theme: result.data.theme,
-        subject: result.data.subject,
-        title: result.data.title,
-        description: result.data.description,
-        estimated_minutes: result.data.estimated_minutes,
-        due_date: result.data.due_date,
+        type,
+        dificulty,
+        subject,
+        title,
+        theme,
+        description,
+        estimated_minutes: Number(estimatedMinutes),
+        due_date: dueDate,
       });
 
-      setFeedback(
-        response.ok
-          ? { type: "success", message: "Tarefa salva com sucesso!" }
-          : {
-              type: "error",
-              message: "Não foi possível salvar a tarefa. Tente novamente.",
-            },
-      );
+      setErrors(response.ok ? {} : response.errors);
       if (response.ok) {
+        setFeedback({ type: "success", message: "Tarefa salva com sucesso!" });
         setType("");
         setDificulty("");
         setSubject("");
@@ -159,6 +84,11 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
         setTheme("");
         setEstimatedMinutes("");
         setDueDate("");
+      } else if (Object.keys(response.errors).length === 0) {
+        setFeedback({
+          type: "error",
+          message: "Não foi possível salvar a tarefa. Tente novamente.",
+        });
       }
     } catch {
       setFeedback({
@@ -179,33 +109,32 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
             id="title"
             placeholder="Título da tarefa"
             value={title}
-            onChange={handleTitleInput}
+            onChange={(event) => setTitle(event.target.value)}
             aria-invalid={!!errors.title}
           />
           <FieldError errors={errors.title?.map((message) => ({ message }))} />
         </Field>
 
         <Field data-invalid={!!errors.theme}>
-          <FieldLabel htmlFor="description">Tema:</FieldLabel>
+          <FieldLabel htmlFor="theme">Tema:</FieldLabel>
           <Textarea
             id="theme"
             placeholder="Descreva o tema do conteúdo a ser estudado"
             value={theme}
-            onChange={handleThemeInput}
+            onChange={(event) => setTheme(event.target.value)}
             aria-invalid={!!errors.theme}
           />
-          <FieldError
-            errors={errors.description?.map((message) => ({ message }))}
-          />
+          <FieldError errors={errors.theme?.map((message) => ({ message }))} />
         </Field>
 
         <Field data-invalid={!!errors.description}>
           <FieldLabel htmlFor="description">Descrição</FieldLabel>
           <Textarea
             id="description"
+            maxLength={2000}
             placeholder="Descreva a tarefa"
             value={description}
-            onChange={handleDescriptionInput}
+            onChange={(event) => setDescription(event.target.value)}
             aria-invalid={!!errors.description}
           />
           <FieldError
@@ -296,7 +225,7 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
             min={1}
             placeholder="60"
             value={estimatedMinutes}
-            onChange={handleEstimatedMinutesInput}
+            onChange={(event) => setEstimatedMinutes(event.target.value)}
             aria-invalid={!!errors.estimated_minutes}
           />
           <FieldError
@@ -310,7 +239,7 @@ export default function TarefaForm({ userEmail }: { userEmail: string }) {
             id="due_date"
             type="date"
             value={dueDate}
-            onChange={handleDueDateInput}
+            onChange={(event) => setDueDate(event.target.value)}
             aria-invalid={!!errors.due_date}
           />
           <FieldError

@@ -17,39 +17,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useState } from "react";
-import { z } from "zod";
 import { cn } from "@/lib/utils";
-import { saveDisponibilidade } from "../../actions";
+import { saveDisponibilidade, type DisponibilidadeErrors } from "../../actions";
 import { weekDays } from "@/utils/data";
 
-const timeRegex = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-const disponibilidadeSchema = z
-  .object({
-    weekday: z
-      .number()
-      .min(0, "Selecione um dia da semana")
-      .max(6, "Selecione um dia da semana"),
-    start: z.string().regex(timeRegex, "Informe um horário inicial válido"),
-    finish: z.string().regex(timeRegex, "Informe um horário final válido"),
-  })
-  .refine((data) => data.finish > data.start, {
-    message: "O horário final deve ser depois do horário inicial",
-    path: ["finish"],
-  });
-
-type DisponibilidadeErrors = Partial<
-  Record<"weekday" | "start" | "finish", string[]>
->;
-
-export default function DisponibilidadeForm({
-  userEmail,
-}: {
-  userEmail: string;
-}) {
-  const [weekday, setWeekDay] = useState(10);
-  const [start, setStart] = useState("00:00:00");
-  const [finish, setFinish] = useState("00:00:00");
+export default function DisponibilidadeForm() {
+  const [weekday, setWeekDay] = useState<number | null>(null);
+  const [start, setStart] = useState("00:00");
+  const [finish, setFinish] = useState("00:00");
   const [errors, setErrors] = useState<DisponibilidadeErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<{
@@ -57,50 +32,27 @@ export default function DisponibilidadeForm({
     message: string;
   } | null>(null);
 
-  function handleSelectDiaDaSemana(value: number | null) {
-    if (value !== null) setWeekDay(value);
-  }
-  function handleStartInput(event: React.ChangeEvent<HTMLInputElement>) {
-    setStart(event.target.value);
-  }
-  function handleFinishInput(event: React.ChangeEvent<HTMLInputElement>) {
-    setFinish(event.target.value);
-  }
-
   async function handleSaveButton() {
-    const result = disponibilidadeSchema.safeParse({ weekday, start, finish });
-
-    if (!result.success) {
-      setErrors(z.flattenError(result.error).fieldErrors);
-      setFeedback(null);
-      return;
-    }
-
-    setErrors({});
     setFeedback(null);
     setIsSaving(true);
     try {
-      const response = await saveDisponibilidade({
-        email: userEmail,
-        weekday: result.data.weekday,
-        start: result.data.start,
-        finish: result.data.finish,
-      });
+      const response = await saveDisponibilidade({ weekday, start, finish });
 
-      setFeedback(
-        response.ok
-          ? { type: "success", message: "Disponibilidade salva com sucesso!" }
-          : {
-              type: "error",
-              message:
-                "Não foi possível salvar a disponibilidade. Tente novamente.",
-            },
-      );
-
+      setErrors(response.ok ? {} : response.errors);
       if (response.ok) {
-        setWeekDay(10);
-        setStart("00:00:00");
-        setFinish("00:00:00");
+        setFeedback({
+          type: "success",
+          message: "Disponibilidade salva com sucesso!",
+        });
+        setWeekDay(null);
+        setStart("00:00");
+        setFinish("00:00");
+      } else if (Object.keys(response.errors).length === 0) {
+        setFeedback({
+          type: "error",
+          message:
+            "Não foi possível salvar a disponibilidade. Tente novamente.",
+        });
       }
     } catch {
       setFeedback({
@@ -119,8 +71,8 @@ export default function DisponibilidadeForm({
           <FieldLabel htmlFor="weekday">Dia da semana</FieldLabel>
           <Select
             items={weekDays}
-            value={weekday === 10 ? null : weekday}
-            onValueChange={handleSelectDiaDaSemana}
+            value={weekday}
+            onValueChange={(value) => setWeekDay(value)}
           >
             <SelectTrigger id="weekday" className="w-full">
               <SelectValue placeholder="Selecione um dia" />
@@ -147,7 +99,7 @@ export default function DisponibilidadeForm({
             type="time"
             placeholder="00:00"
             value={start}
-            onChange={handleStartInput}
+            onChange={(event) => setStart(event.target.value)}
             aria-invalid={!!errors.start}
           />
           <FieldError errors={errors.start?.map((message) => ({ message }))} />
@@ -160,7 +112,7 @@ export default function DisponibilidadeForm({
             placeholder="00:00"
             type="time"
             value={finish}
-            onChange={handleFinishInput}
+            onChange={(event) => setFinish(event.target.value)}
             aria-invalid={!!errors.finish}
           />
           <FieldError errors={errors.finish?.map((message) => ({ message }))} />

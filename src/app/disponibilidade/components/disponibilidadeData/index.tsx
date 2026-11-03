@@ -7,22 +7,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { readDisponibilidade } from "../../actions";
+import { deleteDisponibilidade, readDisponibilidade } from "../../actions";
 import { getWeekDayName, weekDays } from "@/utils/data";
-import DisponibilidadeDeleteButton from "../disponibilidadeDeleteButton";
+import { DeleteButton } from "@/components/delete-button";
 
 function timeToMinutes(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
   return hours * 60 + minutes;
 }
 
-export default async function DisponibilidadeData({
-  userEmail,
-}: {
-  userEmail: string;
-}) {
-  const disponibilidade = await readDisponibilidade({ userEmail });
-  const eventos = disponibilidade.ok ? disponibilidade.data! : [];
+export default async function DisponibilidadeData() {
+  const eventos = await readDisponibilidade();
 
   return (
     <div className="flex flex-col items-center gap-8">
@@ -33,7 +28,7 @@ export default async function DisponibilidadeData({
               key={day.value}
               className="bg-background px-2 py-2 text-center text-sm font-medium"
             >
-              {getWeekDayName(day.value)}
+              {day.label}
             </div>
           ))}
           {weekDays.map((day) => {
@@ -77,21 +72,23 @@ export default async function DisponibilidadeData({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {disponibilidade.ok &&
-            disponibilidade.data!.map((disp) => {
-              return (
-                <TableRow key={disp.id}>
-                  <TableCell className="font-medium">
-                    {getWeekDayName(disp.weekday)}
-                  </TableCell>
-                  <TableCell className="text-center">{disp.start}</TableCell>
-                  <TableCell className="text-center">{disp.finish}</TableCell>
-                  <TableCell className="text-center">
-                    <DisponibilidadeDeleteButton id={disp.id} />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+          {eventos.map((disp) => {
+            return (
+              <TableRow key={disp.id}>
+                <TableCell className="font-medium">
+                  {getWeekDayName(disp.weekday)}
+                </TableCell>
+                <TableCell className="text-center">{disp.start}</TableCell>
+                <TableCell className="text-center">{disp.finish}</TableCell>
+                <TableCell className="text-center">
+                  <DeleteButton
+                    action={deleteDisponibilidade.bind(null, disp.id)}
+                    label="Excluir disponibilidade"
+                  />
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

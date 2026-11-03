@@ -1,44 +1,39 @@
 "use client";
 import { useState } from "react";
-import PlannerData, { type PlannerResult } from "../plannerData";
-import { PlannerForm } from "../plannerForm";
-import { generatePlan, saveRecomendation, saveSchedules } from "../../actions";
+import { useRouter } from "next/navigation";
+import PlannerData from "../plannerData";
+import { Button } from "@/components/ui/button";
+import { generatePlan, type PlanFailure } from "../../actions";
+import type { PlannerResult } from "../../lib";
 
-export default function PlannerClient({
-  userEmail,
-  taskCount,
-}: {
-  userEmail: string;
-  taskCount: number;
-}) {
+const failureMessages: Record<PlanFailure, string> = {
+  "sem-disponibilidade":
+    "Nenhum horário livre nos próximos 7 dias. Cadastre sua disponibilidade antes de gerar o plano.",
+  "sem-tarefas":
+    "Não há tarefas novas para planejar. Cadastre tarefas antes de gerar o plano.",
+  falhou: "Não foi possível gerar o plano de estudos. Tente novamente.",
+};
+
+export default function PlannerClient({ taskCount }: { taskCount: number }) {
   const [result, setResult] = useState<PlannerResult | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   async function handleGenerate() {
     setLoading(true);
-    setError(false);
-    const response = await generatePlan({ userEmail });
-    if (response.ok) {
-      const data = response.data as PlannerResult;
-
-      for (const recommendation of data.summary.study_recommendations) {
-        const recommentadionId = await saveRecomendation({ recommendation });
-        const task_id = recommendation.task_id;
-
-        const sessions = data.sessions.filter(
-          (session) => session.task_id == task_id,
-        );
-        for (const session of sessions) {
-          await saveSchedules({ session, recommentadionId, userEmail });
-        }
-      }
-
-      setResult(data);
-    } else {
-      setError(true);
+    setError(null);
+    try {
+      const response = await generatePlan();
+      if (response.ok) setResult(response.data);
+      else setError(failureMessages[response.reason]);
+      // Reload taskCount: tasks past the limit, or that didn't fit, are still waiting.
+      router.refresh();
+    } catch {
+      setError(failureMessages.falhou);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (
@@ -52,7 +47,9 @@ export default function PlannerClient({
         />
       </div>
       <div className="w-full md:w-1/2 min-w-0 flex justify-center">
-        <PlannerForm onGenerate={handleGenerate} loading={loading} />
+        <Button onClick={handleGenerate} disabled={loading || taskCount === 0}>
+          {loading ? "Gerando..." : "Criar"}
+        </Button>
       </div>
     </div>
   );

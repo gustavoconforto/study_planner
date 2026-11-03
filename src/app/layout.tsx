@@ -31,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="pt-BR"
       data-light-theme="light"
       data-dark-theme="dark"
       data-color-mode="light"

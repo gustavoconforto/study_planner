@@ -5,31 +5,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-type StudyRecommendation = {
-  task_id: number;
-  title: string;
-  overview: string;
-  prerequisites: string[];
-  topics_to_study: string[];
-  common_mistakes: string[];
-  study_tips: string[];
-};
-
-type Session = {
-  task_id: number;
-  title: string;
-  start_time: string;
-  end_time: string;
-  reason: string;
-};
-
-export type PlannerResult = {
-  summary: {
-    general_analysis: string;
-    study_recommendations: StudyRecommendation[];
-  };
-  sessions: Session[];
-};
+import type { PlannerResult, Session, StudyRecommendation } from "../../lib";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString("pt-BR", {

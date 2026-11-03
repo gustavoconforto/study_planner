@@ -1,16 +1,11 @@
 "use client";
 import { useState } from "react";
-import PlannerData, { type PlannerResult } from "../plannerData";
+import PlannerData from "../plannerData";
 import { PlannerForm } from "../plannerForm";
-import { generatePlan, saveRecomendation, saveSchedules } from "../../actions";
+import { generatePlan } from "../../actions";
+import type { PlannerResult } from "../../lib";
 
-export default function PlannerClient({
-  userEmail,
-  taskCount,
-}: {
-  userEmail: string;
-  taskCount: number;
-}) {
+export default function PlannerClient({ taskCount }: { taskCount: number }) {
   const [result, setResult] = useState<PlannerResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
@@ -18,27 +13,15 @@ export default function PlannerClient({
   async function handleGenerate() {
     setLoading(true);
     setError(false);
-    const response = await generatePlan({ userEmail });
-    if (response.ok) {
-      const data = response.data as PlannerResult;
-
-      for (const recommendation of data.summary.study_recommendations) {
-        const recommentadionId = await saveRecomendation({ recommendation });
-        const task_id = recommendation.task_id;
-
-        const sessions = data.sessions.filter(
-          (session) => session.task_id == task_id,
-        );
-        for (const session of sessions) {
-          await saveSchedules({ session, recommentadionId, userEmail });
-        }
-      }
-
-      setResult(data);
-    } else {
+    try {
+      const response = await generatePlan();
+      if (response.ok) setResult(response.data);
+      else setError(true);
+    } catch {
       setError(true);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   return (

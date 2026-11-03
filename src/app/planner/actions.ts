@@ -1,6 +1,6 @@
 "use server";
 import { db } from "@/src/db/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, gte, inArray } from "drizzle-orm";
 import {
   tarefaTable,
   disponibilidadeTable,
@@ -8,191 +8,46 @@ import {
   agendamentoTable,
 } from "@/src/db/schema";
 import { openai } from "@/lib/openai";
+import { requireUserId } from "@/lib/auth";
+import {
+  buildAvailabilityWindows,
+  pickValidSessions,
+  type AvailabilityWindow,
+  type PlannerResult,
+} from "./lib";
 
-type TasksType = typeof tarefaTable.$inferSelect;
-type Recommendation = typeof recomendacaoTable.$inferSelect;
-type RecommendationType = Omit<Recommendation, "id">;
-type Session = typeof agendamentoTable.$inferSelect;
-type SessionType = Omit<Session, "id" | "recomentation_id" | "email">;
+type Task = typeof tarefaTable.$inferSelect;
+type Booked = { startTime: string; endTime: string };
 
-export async function changeTaskStatus({
-  tasksData,
+export async function countTasksToPlan() {
+  const user_id = await requireUserId();
+  const tasks = await db
+    .select({ id: tarefaTable.id })
+    .from(tarefaTable)
+    .where(
+      and(
+        eq(tarefaTable.user_id, user_id),
+        eq(tarefaTable.status, "CADASTRADO"),
+      ),
+    );
+  return tasks.length;
+}
+
+async function aiPlanner({
+  tasks,
+  windows,
+  booked,
 }: {
-  tasksData: TasksType[];
+  tasks: Task[];
+  windows: AvailabilityWindow[];
+  booked: Booked[];
 }) {
-  for (let i = 0; i < tasksData.length; i++) {
-    if (tasksData[i].status === "CADASTRADO") {
-      await db
-        .update(tarefaTable)
-        .set({ status: "AGENDADO" })
-        .where(eq(tarefaTable.id, tasksData[i].id));
-    } else {
-      await db
-        .update(tarefaTable)
-        .set({ status: "CADASTRADO" })
-        .where(eq(tarefaTable.id, tasksData[i].id));
-    }
-  }
-}
-
-export async function getTasksFromUser({ userEmail }: { userEmail: string }) {
-  try {
-    const result = await db
-      .select()
-      .from(tarefaTable)
-      .where(
-        and(
-          eq(tarefaTable.student_email, userEmail),
-          eq(tarefaTable.status, "CADASTRADO"),
-        ),
-      );
-    return {
-      ok: true as const,
-      data: result,
-    };
-  } catch {
-    return {
-      ok: false as const,
-    };
-  }
-}
-
-export async function getAvailabilityFromUser({
-  userEmail,
-}: {
-  userEmail: string;
-}) {
-  try {
-    const result = await db
-      .select()
-      .from(disponibilidadeTable)
-      .where(eq(disponibilidadeTable.email, userEmail));
-
-    if (result.length == 0) {
-      return { ok: false as const };
-    }
-    return {
-      ok: true as const,
-      data: result,
-    };
-  } catch {
-    return {
-      ok: false as const,
-    };
-  }
-}
-
-const WEEKDAY_NAMES = [
-  "Domingo",
-  "Segunda-feira",
-  "Terça-feira",
-  "Quarta-feira",
-  "Quinta-feira",
-  "Sexta-feira",
-  "Sábado",
-];
-
-const PLAN_WINDOW_DAYS = 7;
-
-function buildAvailabilityWindows(
-  availabilitiesData: { weekday: number; start: string; finish: string }[],
-  startDate: string,
-  days: number,
-) {
-  const windows: {
-    date: string;
-    weekday_name: string;
-    start: string;
-    finish: string;
-  }[] = [];
-
-  for (let i = 0; i < days; i++) {
-    const current = new Date(`${startDate}T00:00:00`);
-    current.setDate(current.getDate() + i);
-    const dateStr = current.toISOString().slice(0, 10);
-    const weekday = current.getDay();
-
-    for (const availability of availabilitiesData) {
-      if (availability.weekday === weekday) {
-        windows.push({
-          date: dateStr,
-          weekday_name: WEEKDAY_NAMES[weekday],
-          start: availability.start,
-          finish: availability.finish,
-        });
-      }
-    }
-  }
-
-  return windows;
-}
-
-export async function getSchedulesDatesByUser(email: string) {
-  const result = await db
-    .select()
-    .from(agendamentoTable)
-    .where(eq(agendamentoTable.email, email));
-
-  return result;
-}
-
-export async function aiPlanner({
-  tasksData,
-  availabilitiesData,
-  alreadyBookedSechedules,
-}: {
-  tasksData: {
-    id: number;
-    student_email: string;
-    title: string;
-    description: string;
-    estimated_minutes: number;
-    due_date: string;
-    created_at: Date;
-    updated_at: Date | null;
-    completed_at: Date | null;
-  }[];
-  availabilitiesData: {
-    id: number;
-    email: string;
-    weekday: number;
-    start: string;
-    finish: string;
-  }[];
-  alreadyBookedSechedules: {
-    startTime: string;
-    endTime: string;
-  }[];
-}) {
-  if (!process.env.OPENAI_API_KEY) {
-    throw new Error("OPENAI_API_KEY is not configured");
-  }
-
-  if (tasksData.length === 0) {
-    return {
-      summary: { general_analysis: "", study_recommendations: [] },
-      sessions: [],
-    };
-  }
-
-  const validTaskIds = tasksData.map((task) => task.id);
-
-  const startDate = new Date().toISOString().slice(0, 10);
-  const availabilityWindows = buildAvailabilityWindows(
-    availabilitiesData,
-    startDate,
-    PLAN_WINDOW_DAYS,
-  );
-  const endDate = new Date(
-    Date.now() + (PLAN_WINDOW_DAYS - 1) * 24 * 60 * 60 * 1000,
-  )
-    .toISOString()
-    .slice(0, 10);
+  const validTaskIds = tasks.map((task) => task.id);
 
   const prompt = `
     Você é um orientador acadêmico especializado em estudantes do ensino médio.
 
-    Crie um plano de estudos realista entre ${startDate} e ${endDate}.
+    Crie um plano de estudos realista entre ${windows[0].date} e ${windows[windows.length - 1].date}.
     A disponibilidade do aluno já foi convertida em datas exatas (campo "Disponibilidade do aluno" no input, lista de { date, weekday_name, start, finish }). Utilize apenas esses intervalos exatos — não infira dias da semana a partir de outro campo nem agende fora dessas datas/horários.
     O aluno já possui sessões agendadas anteriormente (campo "Horários já ocupados" no input, lista de { startTime, endTime }). Esses intervalos NÃO estão disponíveis — nenhuma sessão nova pode se sobrepor, total ou parcialmente, a nenhum desses intervalos.
     Regras:
@@ -263,13 +118,13 @@ export async function aiPlanner({
     Retorne a resposta em formato JSON.
 
     Tarefas:
-    ${JSON.stringify(tasksData)}
+    ${JSON.stringify(tasks)}
 
     Disponibilidade do aluno (datas exatas dentro da janela de planejamento, já calculadas a partir da disponibilidade recorrente do aluno):
-    ${JSON.stringify(availabilityWindows)}
+    ${JSON.stringify(windows)}
 
     Horários já ocupados (sessões já agendadas anteriormente; nenhuma nova sessão pode se sobrepor a estes intervalos):
-    ${JSON.stringify(alreadyBookedSechedules)}`;
+    ${JSON.stringify(booked)}`;
 
   const recommendationSchema = {
     type: "object",
@@ -343,82 +198,117 @@ export async function aiPlanner({
     },
   });
 
-  return JSON.parse(response.output_text);
+  return JSON.parse(response.output_text) as PlannerResult;
 }
 
-async function getAlreadyBookedSechedules({
-  userEmail,
-}: {
-  userEmail: string;
-}) {
-  const result = await db
-    .select({
-      startTime: agendamentoTable.start_time,
-      endTime: agendamentoTable.end_time,
-    })
-    .from(agendamentoTable)
-    .where(eq(agendamentoTable.email, userEmail));
-  return result;
-}
+export async function generatePlan(): Promise<
+  { ok: true; data: PlannerResult } | { ok: false }
+> {
+  const user_id = await requireUserId();
 
-export async function generatePlan({ userEmail }: { userEmail: string }) {
-  const tasksResult = await getTasksFromUser({ userEmail });
-  const availabilitiesResult = await getAvailabilityFromUser({ userEmail });
-  const alreadyBookedSechedules = await getAlreadyBookedSechedules({
-    userEmail,
-  });
-  if (!tasksResult.ok || !availabilitiesResult.ok) {
-    return { ok: false as const };
-  }
-  await changeTaskStatus({ tasksData: tasksResult.data });
+  const availabilities = await db
+    .select()
+    .from(disponibilidadeTable)
+    .where(eq(disponibilidadeTable.user_id, user_id));
+  const windows = buildAvailabilityWindows(availabilities, new Date());
+  if (windows.length === 0) return { ok: false };
 
-  try {
-    const data = await aiPlanner({
-      tasksData: tasksResult.data,
-      availabilitiesData: availabilitiesResult.data,
-      alreadyBookedSechedules,
-    });
-    return { ok: true as const, data };
-  } catch (error) {
-    console.log(error);
-    return { ok: false as const };
-  }
-}
-
-export async function saveRecomendation({
-  recommendation,
-}: {
-  recommendation: RecommendationType;
-}) {
-  const data = await db
-    .insert(recomendacaoTable)
-    .values({
-      title: recommendation.title,
-      overview: recommendation.overview,
-      prerequisites: recommendation.prerequisites,
-      topics_to_study: recommendation.topics_to_study,
-      common_mistakes: recommendation.common_mistakes,
-      study_tips: recommendation.study_tips,
-    })
+  // Claim the tasks in one statement, so a second tab or a double click can't plan them twice.
+  const tasks = await db
+    .update(tarefaTable)
+    .set({ status: "AGENDADO" })
+    .where(
+      and(
+        eq(tarefaTable.user_id, user_id),
+        eq(tarefaTable.status, "CADASTRADO"),
+      ),
+    )
     .returning();
+  if (tasks.length === 0) return { ok: false };
 
-  return data[0].id;
-}
+  let savedRecommendationIds: number[] = [];
+  try {
+    const booked = await db
+      .select({
+        startTime: agendamentoTable.start_time,
+        endTime: agendamentoTable.end_time,
+      })
+      .from(agendamentoTable)
+      .where(
+        and(
+          eq(agendamentoTable.user_id, user_id),
+          gte(agendamentoTable.end_time, `${windows[0].date} 00:00:00`),
+        ),
+      );
 
-export async function saveSchedules({
-  session,
-  recommentadionId,
-  userEmail,
-}: {
-  session: SessionType;
-  recommentadionId: number;
-  userEmail: string;
-}) {
-  await db.insert(agendamentoTable).values({
-    recomentation_id: recommentadionId,
-    email: userEmail,
-    start_time: session.start_time,
-    end_time: session.end_time,
-    reason: session.reason,
-  });
+    const plan = await aiPlanner({ tasks, windows, booked });
+
+    const sessions = pickValidSessions(plan.sessions, windows, booked);
+    const recommendations = plan.summary.study_recommendations.filter(
+      (r, i, all) =>
+        sessions.some((s) => s.task_id === r.task_id) &&
+        all.findIndex((other) => other.task_id === r.task_id) === i,
+    );
+    if (recommendations.length === 0) throw new Error("No valid sessions");
+
+    const saved = await db
+      .insert(recomendacaoTable)
+      .values(recommendations)
+      .returning({
+        id: recomendacaoTable.id,
+        task_id: recomendacaoTable.task_id,
+      });
+    savedRecommendationIds = saved.map((r) => r.id);
+    const recommendationIdByTask = new Map(saved.map((r) => [r.task_id, r.id]));
+    const plannedSessions = sessions.filter((s) =>
+      recommendationIdByTask.has(s.task_id),
+    );
+
+    await db.insert(agendamentoTable).values(
+      plannedSessions.map((s) => ({
+        user_id,
+        recomentation_id: recommendationIdByTask.get(s.task_id),
+        start_time: s.start_time,
+        end_time: s.end_time,
+        reason: s.reason,
+      })),
+    );
+
+    // Tasks the AI could not fit go back to the queue for the next run.
+    const unplanned = tasks
+      .map((t) => t.id)
+      .filter((id) => !recommendationIdByTask.has(id));
+    if (unplanned.length > 0) {
+      await db
+        .update(tarefaTable)
+        .set({ status: "CADASTRADO" })
+        .where(inArray(tarefaTable.id, unplanned));
+    }
+
+    return {
+      ok: true,
+      data: {
+        summary: { ...plan.summary, study_recommendations: recommendations },
+        sessions: plannedSessions,
+      },
+    };
+  } catch (error) {
+    console.error(error);
+    // No transactions over neon-http: undo by hand (sessions go with their recommendation via cascade).
+    if (savedRecommendationIds.length > 0) {
+      await db
+        .delete(recomendacaoTable)
+        .where(inArray(recomendacaoTable.id, savedRecommendationIds));
+    }
+    await db
+      .update(tarefaTable)
+      .set({ status: "CADASTRADO" })
+      .where(
+        inArray(
+          tarefaTable.id,
+          tasks.map((t) => t.id),
+        ),
+      );
+    return { ok: false };
+  }
 }

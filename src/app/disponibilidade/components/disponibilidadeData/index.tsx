@@ -16,13 +16,8 @@ function timeToMinutes(time: string) {
   return hours * 60 + minutes;
 }
 
-export default async function DisponibilidadeData({
-  userEmail,
-}: {
-  userEmail: string;
-}) {
-  const disponibilidade = await readDisponibilidade({ userEmail });
-  const eventos = disponibilidade.ok ? disponibilidade.data! : [];
+export default async function DisponibilidadeData() {
+  const eventos = await readDisponibilidade();
 
   return (
     <div className="flex flex-col items-center gap-8">
@@ -77,21 +72,20 @@ export default async function DisponibilidadeData({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {disponibilidade.ok &&
-            disponibilidade.data!.map((disp) => {
-              return (
-                <TableRow key={disp.id}>
-                  <TableCell className="font-medium">
-                    {getWeekDayName(disp.weekday)}
-                  </TableCell>
-                  <TableCell className="text-center">{disp.start}</TableCell>
-                  <TableCell className="text-center">{disp.finish}</TableCell>
-                  <TableCell className="text-center">
-                    <DisponibilidadeDeleteButton id={disp.id} />
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+          {eventos.map((disp) => {
+            return (
+              <TableRow key={disp.id}>
+                <TableCell className="font-medium">
+                  {getWeekDayName(disp.weekday)}
+                </TableCell>
+                <TableCell className="text-center">{disp.start}</TableCell>
+                <TableCell className="text-center">{disp.finish}</TableCell>
+                <TableCell className="text-center">
+                  <DisponibilidadeDeleteButton id={disp.id} />
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

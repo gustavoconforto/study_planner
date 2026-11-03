@@ -8,9 +8,11 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
+// shortcut: the old `email`/`student_email` columns stay until scripts/backfill-user-id.mjs has run; then drop them and make user_id notNull.
 export const disponibilidadeTable = pgTable("agendamentos", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  email: varchar({ length: 255 }).notNull(),
+  user_id: varchar({ length: 255 }),
+  email: varchar({ length: 255 }),
   weekday: integer().notNull(),
   start: varchar({ length: 10 }).notNull(),
   finish: varchar({ length: 10 }).notNull(),
@@ -55,7 +57,8 @@ export const tarefaTable = pgTable("tasks", {
   dificulty: taskDificultyEnum("task_dificulty").notNull(),
   status: taskStatusEnum("task_status").notNull(),
   subject: tasksubjectEnum("task_subject").notNull(),
-  student_email: varchar({ length: 255 }).notNull(),
+  user_id: varchar({ length: 255 }),
+  student_email: varchar({ length: 255 }),
   title: varchar({ length: 255 }).notNull(),
   theme: varchar({ length: 255 }),
   description: text().notNull(),
@@ -63,11 +66,11 @@ export const tarefaTable = pgTable("tasks", {
   due_date: date("due_date").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").$onUpdate(() => new Date()),
-  completed_at: timestamp("completed_at"),
 });
 
 export const agendamentoTable = pgTable("schedules", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  user_id: varchar({ length: 255 }),
   email: varchar({ length: 255 }),
   recomentation_id: integer().references(() => recomendacaoTable.id, {
     onDelete: "cascade",
@@ -79,6 +82,7 @@ export const agendamentoTable = pgTable("schedules", {
 
 export const recomendacaoTable = pgTable("recommendations", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  task_id: integer().references(() => tarefaTable.id, { onDelete: "cascade" }),
   title: varchar({ length: 255 }).notNull(),
   overview: text().notNull(),
   prerequisites: text().array().notNull(),

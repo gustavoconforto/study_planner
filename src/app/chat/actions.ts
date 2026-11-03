@@ -1,28 +1,20 @@
 "use server";
-import { auth, currentUser } from "@clerk/nextjs/server";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, gte } from "drizzle-orm";
 import { db } from "@/src/db/db";
 import { tarefaTable } from "@/src/db/schema";
+import { requireUserId } from "@/lib/auth";
+import { localNow } from "@/utils/data";
 
 export async function getTasksForChatContext() {
-  const { userId } = await auth();
-  if (!userId) {
-    throw new Error("Unauthorized");
-  }
-
-  const user = await currentUser();
-  const userEmail = user?.primaryEmailAddress?.emailAddress;
-  if (!userEmail) {
-    throw new Error("Unauthorized");
-  }
+  const user_id = await requireUserId();
 
   return db
     .select()
     .from(tarefaTable)
     .where(
       and(
-        eq(tarefaTable.student_email, userEmail),
-        isNull(tarefaTable.completed_at),
+        eq(tarefaTable.user_id, user_id),
+        gte(tarefaTable.due_date, localNow().date),
       ),
     );
 }

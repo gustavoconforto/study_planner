@@ -3,13 +3,15 @@
 import { db } from "@/src/db/db";
 import { agendamentoTable, recomendacaoTable } from "@/src/db/schema";
 import { eq } from "drizzle-orm";
+import { requireUserId } from "@/lib/auth";
 
-export async function getSchedulesByEmail(email: string) {
+export async function getSchedules() {
+  const user_id = await requireUserId();
   try {
     const result = await db
       .select()
       .from(agendamentoTable)
-      .where(eq(agendamentoTable.email, email))
+      .where(eq(agendamentoTable.user_id, user_id))
       .leftJoin(
         recomendacaoTable,
         eq(agendamentoTable.recomentation_id, recomendacaoTable.id),

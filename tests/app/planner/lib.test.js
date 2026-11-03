@@ -1,0 +1,81 @@
+import { describe, expect, it } from "vitest";
+import {
+  buildAvailabilityWindows,
+  pickValidSessions,
+} from "@/src/app/planner/lib";
+
+// 2026-11-03 is a Tuesday (weekday 2). 21:00 UTC = 18:00 in São Paulo.
+const now = new Date("2026-11-03T21:00:00Z");
+
+describe("buildAvailabilityWindows", () => {
+  it("uses the São Paulo date and drops or trims slots that already passed", () => {
+    const windows = buildAvailabilityWindows(
+      [
+        { weekday: 2, start: "14:00", finish: "16:00" }, // today, already over
+        { weekday: 2, start: "17:00", finish: "20:00" }, // today, in progress
+        { weekday: 3, start: "08:00", finish: "09:00" }, // tomorrow
+      ],
+      now,
+    );
+    expect(windows).toEqual([
+      {
+        date: "2026-11-03",
+        weekday_name: "Terça-feira",
+        start: "18:00",
+        finish: "20:00",
+      },
+      {
+        date: "2026-11-04",
+        weekday_name: "Quarta-feira",
+        start: "08:00",
+        finish: "09:00",
+      },
+    ]);
+  });
+
+  it("does not jump to tomorrow late in the evening (UTC is already the next day)", () => {
+    const lateEvening = new Date("2026-11-04T01:30:00Z"); // 22:30 on the 3rd in São Paulo
+    const windows = buildAvailabilityWindows(
+      [{ weekday: 2, start: "22:00", finish: "23:30" }],
+      lateEvening,
+    );
+    expect(windows[0]).toMatchObject({ date: "2026-11-03", start: "22:30" });
+  });
+});
+
+describe("pickValidSessions", () => {
+  const windows = [
+    {
+      date: "2026-11-04",
+      weekday_name: "Quarta-feira",
+      start: "08:00",
+      finish: "12:00",
+    },
+  ];
+  const session = (start, end) => ({
+    task_id: 1,
+    title: "t",
+    start_time: `2026-11-04T${start}:00`,
+    end_time: `2026-11-04T${end}:00`,
+    reason: "r",
+  });
+
+  it("keeps only sessions inside availability, not overlapping booked or each other", () => {
+    const kept = pickValidSessions(
+      [
+        session("08:00", "09:00"), // ok
+        session("08:30", "09:30"), // overlaps the one above
+        session("09:30", "10:30"), // overlaps booked 10:00-11:00
+        session("11:00", "12:30"), // runs past availability
+        session("11:00", "12:00"), // ok
+        { ...session("11:00", "12:00"), start_time: "amanhã" }, // malformed
+      ],
+      windows,
+      [{ startTime: "2026-11-04 10:00:00", endTime: "2026-11-04 11:00:00" }],
+    );
+    expect(kept.map((s) => s.start_time)).toEqual([
+      "2026-11-04T08:00:00",
+      "2026-11-04T11:00:00",
+    ]);
+  });
+});

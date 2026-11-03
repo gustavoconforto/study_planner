@@ -6,16 +6,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Header from "../layout/PageHeader";
-import { getSchedulesByEmail } from "./actions";
-import { auth, currentUser } from "@clerk/nextjs/server";
+import { getSchedules } from "./actions";
+import { auth } from "@clerk/nextjs/server";
 
 export default async function AgendaPage() {
   await auth.protect();
-  const user = await currentUser();
-  if (!user) return null;
-  const userEmail = user.primaryEmailAddress!.emailAddress;
 
-  const schedules = await getSchedulesByEmail(userEmail);
+  const schedules = await getSchedules();
 
   function extractDayTimeFromTimestamp(dateTime: string) {
     const [date, time] = dateTime.trim().split(" ");

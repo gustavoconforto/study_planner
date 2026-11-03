@@ -1,6 +1,6 @@
 "use server";
 import { db } from "@/src/db/db";
-import { eq, and, gte, inArray } from "drizzle-orm";
+import { eq, and, gte, inArray, notInArray } from "drizzle-orm";
 import {
   tarefaTable,
   disponibilidadeTable,
@@ -118,7 +118,20 @@ async function aiPlanner({
     Retorne a resposta em formato JSON.
 
     Tarefas:
-    ${JSON.stringify(tasks)}
+    ${JSON.stringify(
+      // Only what the planner needs: no email or account id goes to OpenAI.
+      tasks.map((t) => ({
+        id: t.id,
+        title: t.title,
+        description: t.description,
+        theme: t.theme,
+        subject: t.subject,
+        type: t.type,
+        dificulty: t.dificulty,
+        estimated_minutes: t.estimated_minutes,
+        due_date: t.due_date,
+      })),
+    )}
 
     Disponibilidade do aluno (datas exatas dentro da janela de planejamento, já calculadas a partir da disponibilidade recorrente do aluno):
     ${JSON.stringify(windows)}
@@ -273,6 +286,19 @@ export async function generatePlan(): Promise<
         reason: s.reason,
       })),
     );
+
+    // A task planned again replaces its old plan (old sessions go with it via cascade).
+    await db
+      .delete(recomendacaoTable)
+      .where(
+        and(
+          inArray(
+            recomendacaoTable.task_id,
+            recommendations.map((r) => r.task_id),
+          ),
+          notInArray(recomendacaoTable.id, savedRecommendationIds),
+        ),
+      );
 
     // Tasks the AI could not fit go back to the queue for the next run.
     const unplanned = tasks

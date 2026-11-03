@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "6f34a562-2f2b-41da-87f1-1d96ee1f73bb",
+  "id": "e8993502-b4d2-4187-9866-1ea263ea7599",
   "prevIds": [
     "5206cd64-8dfc-45a4-aa2f-cece689340e1"
   ],
@@ -571,6 +571,19 @@
       "generated": null,
       "identity": null,
       "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tasks"
+    },
+    {
+      "type": "timestamp",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "completed_at",
       "entityType": "columns",
       "schema": "public",
       "table": "tasks"

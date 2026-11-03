@@ -1,4 +1,6 @@
-// One-off, after `npm run db:migrate`: fill the new user_id columns from the old email columns.
+// One-off: fill the new user_id columns from the old email columns.
+// Order: `npm run db:migrate`, deploy the new code, THEN run this (rows saved by the old code before
+// the deploy have no user_id). Safe to run again: it only fills rows where user_id is still empty.
 //   node --env-file=.env scripts/backfill-user-id.mjs
 import { neon } from "@neondatabase/serverless";
 

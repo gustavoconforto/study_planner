@@ -8,7 +8,8 @@ import {
   timestamp,
 } from "drizzle-orm/pg-core";
 
-// shortcut: the old `email`/`student_email` columns stay until scripts/backfill-user-id.mjs has run; then drop them and make user_id notNull.
+// shortcut: the old `email`/`student_email` (and unused `completed_at`) columns stay until the new code is deployed and
+// scripts/backfill-user-id.mjs has run; then drop them and make user_id notNull in one cleanup migration.
 export const disponibilidadeTable = pgTable("agendamentos", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
   user_id: varchar({ length: 255 }),
@@ -66,6 +67,7 @@ export const tarefaTable = pgTable("tasks", {
   due_date: date("due_date").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").$onUpdate(() => new Date()),
+  completed_at: timestamp("completed_at"), // unused; drop in the cleanup migration with the email columns
 });
 
 export const agendamentoTable = pgTable("schedules", {

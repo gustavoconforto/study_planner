@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import PlannerData from "../plannerData";
-import { PlannerForm } from "../plannerForm";
+import { Button } from "@/components/ui/button";
 import { generatePlan } from "../../actions";
 import type { PlannerResult } from "../../lib";
 
@@ -35,7 +35,9 @@ export default function PlannerClient({ taskCount }: { taskCount: number }) {
         />
       </div>
       <div className="w-full md:w-1/2 min-w-0 flex justify-center">
-        <PlannerForm onGenerate={handleGenerate} loading={loading} />
+        <Button onClick={handleGenerate} disabled={loading}>
+          {loading ? "Gerando..." : "Criar"}
+        </Button>
       </div>
     </div>
   );

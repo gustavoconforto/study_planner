@@ -5,18 +5,18 @@ import TarefaForm from "./components/tarefaForm";
 export default async function TarefaPage() {
   await auth.protect();
   return (
-    <div className="w-full">
+    <div>
       <Header
         title="Tarefas"
         subtitle="Cadastre suas tarefas para que possamos criar sua agenda."
       />
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-16 px-10 pb-8 w-full">
-        <div className="w-full md:w-1/2 min-w-0 flex justify-center">
+      <div className="mx-auto grid w-full max-w-6xl items-start gap-8 px-4 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <section className="min-w-0">
           <TarefaData />
-        </div>
-        <div className="w-full md:w-1/2 min-w-0 flex justify-center">
+        </section>
+        <aside className="lg:sticky lg:top-6">
           <TarefaForm />
-        </div>
+        </aside>
       </div>
     </div>
   );

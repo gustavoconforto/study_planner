@@ -2,6 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   Field,
   FieldLabel,
   FieldGroup,
@@ -19,18 +26,15 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { displayLabel } from "@/utils/data";
 import { saveTarefa, type TarefaErrors } from "../../actions";
 import { TASK_TYPE, TASK_DIFICULTY, TASK_SUBJECT } from "@/src/db/schema";
 
-const taskTypeItems = TASK_TYPE.map((type) => ({ label: type, value: type }));
-const taskDificultyItems = TASK_DIFICULTY.map((dificulty) => ({
-  label: dificulty,
-  value: dificulty,
-}));
-const taskSubjectItems = TASK_SUBJECT.map((subject) => ({
-  label: subject,
-  value: subject,
-}));
+const toItems = (values: readonly string[]) =>
+  values.map((value) => ({ label: displayLabel(value), value }));
+const taskTypeItems = toItems(TASK_TYPE);
+const taskDificultyItems = toItems(TASK_DIFICULTY);
+const taskSubjectItems = toItems(TASK_SUBJECT);
 
 export default function TarefaForm() {
   const [type, setType] = useState("");
@@ -101,7 +105,12 @@ export default function TarefaForm() {
   }
 
   return (
-    <div className="flex flex-col gap-6 border-x px-10 w-full max-w-md">
+    <Card>
+      <CardHeader>
+        <CardTitle>Nova tarefa</CardTitle>
+        <CardDescription>Ela entra na fila do planner até você gerar um plano.</CardDescription>
+      </CardHeader>
+      <CardContent>
       <FieldGroup>
         <Field data-invalid={!!errors.title}>
           <FieldLabel htmlFor="title">Título</FieldLabel>
@@ -116,7 +125,7 @@ export default function TarefaForm() {
         </Field>
 
         <Field data-invalid={!!errors.theme}>
-          <FieldLabel htmlFor="theme">Tema:</FieldLabel>
+          <FieldLabel htmlFor="theme">Tema</FieldLabel>
           <Textarea
             id="theme"
             placeholder="Descreva o tema do conteúdo a ser estudado"
@@ -248,12 +257,11 @@ export default function TarefaForm() {
         </Field>
 
         <Button
-          variant="secondary"
           type="button"
           onClick={handleSaveButton}
           disabled={isSaving}
         >
-          {isSaving ? "Salvando..." : "Salvar"}
+          {isSaving ? "Salvando..." : "Salvar tarefa"}
         </Button>
 
         {feedback && (
@@ -261,13 +269,14 @@ export default function TarefaForm() {
             role="status"
             className={cn(
               "text-sm",
-              feedback.type === "success" ? "text-primary" : "text-destructive",
+              feedback.type === "success" ? "text-muted-foreground" : "text-destructive",
             )}
           >
             {feedback.message}
           </p>
         )}
       </FieldGroup>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -7,18 +7,18 @@ export default async function DisponibilidadePage() {
   await auth.protect();
 
   return (
-    <div className="w-full">
+    <div>
       <Header
         title="Disponibilidade"
-        subtitle="Insira sua disponibilidade de estudos para que possamos ajudar na montagem ho seu horário"
+        subtitle="Insira sua disponibilidade de estudos para que possamos ajudar na montagem do seu horário"
       />
-      <div className="flex flex-col md:flex-row items-center md:items-start gap-16 px-10 pb-8 w-full">
-        <div className="w-full md:w-1/2 min-w-0 flex justify-center">
+      <div className="mx-auto grid w-full max-w-6xl items-start gap-8 px-4 pb-16 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <section className="min-w-0">
           <DisponibilidadeData />
-        </div>
-        <div className="w-full md:w-1/2 min-w-0 flex justify-center">
+        </section>
+        <aside className="lg:sticky lg:top-6">
           <DisponibilidadeForm />
-        </div>
+        </aside>
       </div>
     </div>
   );

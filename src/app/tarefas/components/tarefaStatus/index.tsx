@@ -11,9 +11,14 @@ import {
 } from "@/components/ui/select";
 import { updateTarefaStatus } from "../../actions";
 import { TASK_STATUS } from "@/src/db/schema";
+import { cn } from "@/lib/utils";
 
+const statusLabels: Record<(typeof TASK_STATUS)[number], string> = {
+  AGENDADO: "Agendada",
+  CADASTRADO: "Na fila",
+};
 const taskStatusItems = TASK_STATUS.map((status) => ({
-  label: status,
+  label: statusLabels[status],
   value: status,
 }));
 
@@ -41,22 +46,24 @@ export default function TaskStatus({
   }
 
   return (
-    <div className="flex justify-between items-center gap-2">
-      <span className="text-muted-foreground font-semibold">Status:&nbsp;</span>
+    <div className="flex items-center gap-2 text-sm">
+      <label htmlFor={`status-${taskId}`} className="text-muted-foreground">
+        Status
+      </label>
       <Select
         items={taskStatusItems}
         value={currentStatus}
         onValueChange={handleSelectStatus}
         disabled={isPending}
       >
-        <SelectTrigger
-          id={`status-${taskId}`}
-          className={
-            currentStatus === "AGENDADO"
-              ? "font-bold text-green-600"
-              : "font-bold text-orange-600"
-          }
-        >
+        <SelectTrigger id={`status-${taskId}`} size="sm">
+          <span
+            aria-hidden
+            className={cn(
+              "size-2 rounded-full",
+              currentStatus === "AGENDADO" ? "bg-primary" : "bg-muted-foreground/40",
+            )}
+          />
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

@@ -59,6 +59,8 @@ export default function ChatWindow() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A blocked message's reply (e.g. the CVV help line): shown calmly, not as a red error.
+  const [notice, setNotice] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   function handleInputChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -80,6 +82,7 @@ export default function ChatWindow() {
     setMessages(nextMessages);
     setInput("");
     setError(null);
+    setNotice(null);
     setIsStreaming(true);
     scrollToBottom();
     let answered = false;
@@ -91,6 +94,12 @@ export default function ChatWindow() {
         body: JSON.stringify({ messages: fitHistory(nextMessages) }),
       });
 
+      if (response.status === 422) {
+        // Blocked by moderation: the server's reply explains why.
+        setMessages(messages);
+        setNotice(await response.text());
+        return;
+      }
       if (!response.ok || !response.body) {
         throw new Error("Falha ao consultar o assistente");
       }
@@ -143,11 +152,11 @@ export default function ChatWindow() {
     isStreaming && messages[messages.length - 1]?.role !== "assistant";
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-2xl mx-auto px-10 pb-8">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 px-4 pb-16 sm:px-6">
       <Card className="flex-1">
-        <CardContent className="flex flex-col gap-3 overflow-y-auto max-h-[55vh] min-h-105">
+        <CardContent className="flex max-h-[60vh] min-h-105 flex-col gap-5 overflow-y-auto">
           {messages.length === 0 && (
-            <p className="text-sm text-muted-foreground">
+            <p className="m-auto max-w-sm text-center text-sm text-pretty text-muted-foreground">
               Pergunte sobre suas tarefas, peça uma explicação de um tema ou
               tire dúvidas de matérias.
             </p>
@@ -156,10 +165,11 @@ export default function ChatWindow() {
             <div
               key={index}
               className={cn(
-                "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                "text-sm leading-relaxed",
+                // The student's questions sit in ink on the right; the tutor's answers read like notes.
                 message.role === "user"
-                  ? "self-end whitespace-pre-wrap bg-primary text-primary-foreground"
-                  : "self-start bg-muted text-foreground",
+                  ? "max-w-[85%] self-end rounded-lg bg-primary px-3.5 py-2.5 whitespace-pre-wrap text-primary-foreground"
+                  : "max-w-prose self-start text-foreground",
               )}
             >
               {message.role === "assistant" ? (
@@ -185,18 +195,24 @@ export default function ChatWindow() {
       </Card>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {notice && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {notice}
+        </p>
+      )}
 
-      <div className="flex gap-2">
+      <div className="flex items-end gap-2">
         <Textarea
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Digite sua dúvida..."
+          aria-label="Sua dúvida"
           maxLength={MAX_USER_CHARS}
           disabled={isStreaming}
-          className="min-h-12"
+          className="min-h-12 bg-card"
         />
-        <Button onClick={handleSend} disabled={isStreaming || !input.trim()}>
+        <Button size="lg" onClick={handleSend} disabled={isStreaming || !input.trim()}>
           {isStreaming ? "Enviando..." : "Enviar"}
         </Button>
       </div>

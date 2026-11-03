@@ -11,6 +11,8 @@ import {
   MAX_HISTORY_CHARS,
   MAX_MESSAGES,
   MAX_USER_CHARS,
+  BLOCKED_REPLY,
+  SELF_HARM_REPLY,
 } from "@/src/app/chat/lib";
 
 // Caps what one request can cost on OpenAI. Assistant turns are our own earlier answers
@@ -51,6 +53,30 @@ export async function POST(request: Request) {
   );
   if (!parsed.success) {
     return new Response("Bad Request", { status: 400 });
+  }
+
+  // Students are minors: OpenAI's moderation (free) checks what the student wrote before the tutor answers.
+  // Every student turn, since the client sends the history; not the tutor's answers, or one flagged
+  // history/biology answer would block the rest of the conversation.
+  const moderation = await openai.moderations.create({
+    model: "omni-moderation-latest",
+    input: parsed.data.messages
+      .filter((m) => m.role === "user")
+      .map((m) => m.content),
+  });
+  const flagged = moderation.results.filter((r) => r.flagged);
+  if (flagged.length > 0) {
+    const selfHarm = flagged.some(
+      (r) =>
+        r.categories["self-harm"] ||
+        r.categories["self-harm/intent"] ||
+        r.categories["self-harm/instructions"],
+    );
+    // 422 keeps the message out of the history, so the next question isn't blocked by it.
+    return new Response(selfHarm ? SELF_HARM_REPLY : BLOCKED_REPLY, {
+      status: 422,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
   }
 
   const tasks = await db

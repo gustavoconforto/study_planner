@@ -9,22 +9,21 @@ type HeaderParams = {
 
 export default function Header({ title, subtitle, actions }: HeaderParams) {
   return (
-    <div className="w-full px-10 py-5">
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-semibold">{title}</h1>
-        </div>
+    <div className="mx-auto w-full max-w-6xl px-4 pt-10 pb-8 sm:px-6">
+      <div className="flex max-w-2xl flex-col gap-3">
+        <h1 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
+          {title}
+        </h1>
 
-        <span className="text-lg font-semibold text-muted-foreground">
-          {subtitle}
-        </span>
+        {subtitle && (
+          <p className="text-base text-pretty text-muted-foreground sm:text-lg">
+            {subtitle}
+          </p>
+        )}
 
         {actions && (
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Link
-              href="/disponibilidade"
-              className={buttonVariants({ variant: "destructive", size: "lg" })}
-            >
+          <div className="flex flex-wrap gap-3 pt-3">
+            <Link href="/disponibilidade" className={buttonVariants({ size: "lg" })}>
               Criar minha primeira agenda
             </Link>
             <Link

@@ -2,6 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
   Field,
   FieldLabel,
   FieldGroup,
@@ -65,7 +72,12 @@ export default function DisponibilidadeForm() {
   }
 
   return (
-    <div className="flex flex-col gap-6 border-x px-10 w-full max-w-md">
+    <Card>
+      <CardHeader>
+        <CardTitle>Novo horário livre</CardTitle>
+        <CardDescription>Um bloco da semana em que você pode estudar.</CardDescription>
+      </CardHeader>
+      <CardContent>
       <FieldGroup>
         <Field data-invalid={!!errors.weekday}>
           <FieldLabel htmlFor="weekday">Dia da semana</FieldLabel>
@@ -119,12 +131,11 @@ export default function DisponibilidadeForm() {
         </Field>
 
         <Button
-          variant="secondary"
           type="button"
           onClick={handleSaveButton}
           disabled={isSaving}
         >
-          {isSaving ? "Salvando..." : "Salvar"}
+          {isSaving ? "Salvando..." : "Salvar horário"}
         </Button>
 
         {feedback && (
@@ -132,13 +143,14 @@ export default function DisponibilidadeForm() {
             role="status"
             className={cn(
               "text-sm",
-              feedback.type === "success" ? "text-primary" : "text-destructive",
+              feedback.type === "success" ? "text-muted-foreground" : "text-destructive",
             )}
           >
             {feedback.message}
           </p>
         )}
       </FieldGroup>
-    </div>
+      </CardContent>
+    </Card>
   );
 }

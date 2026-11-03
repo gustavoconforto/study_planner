@@ -51,8 +51,8 @@ export default function RootLayout({
               </Show>
             </div>
           </header>
+          {children}
         </ClerkProvider>
-        {children}
       </body>
     </html>
   );

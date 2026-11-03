@@ -25,7 +25,12 @@ const chatRequestSchema = z.object({
       ]),
     )
     .min(1)
-    .max(20),
+    .max(20)
+    // Assistant turns come from the client too, so cap the whole history, not just each message.
+    .refine(
+      (messages) =>
+        messages.reduce((total, m) => total + m.content.length, 0) <= 60000,
+    ),
 });
 
 export async function POST(request: Request) {
@@ -56,7 +61,10 @@ export async function POST(request: Request) {
         eq(tarefaTable.user_id, userId),
         gte(tarefaTable.due_date, localNow().date),
       ),
-    );
+    )
+    // Sent with every message, so only the nearest deadlines.
+    .orderBy(tarefaTable.due_date)
+    .limit(15);
   const instructions = buildChatInstructions(tasks);
 
   const stream = await openai.responses.create({

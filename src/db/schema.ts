@@ -1,5 +1,6 @@
 import {
   date,
+  index,
   integer,
   pgEnum,
   pgTable,
@@ -52,35 +53,44 @@ export const taskDificultyEnum = pgEnum("task_dificulty", TASK_DIFICULTY);
 export const taskStatusEnum = pgEnum("task_status", TASK_STATUS);
 export const tasksubjectEnum = pgEnum("task_subject", TASK_SUBJECT);
 
-export const tarefaTable = pgTable("tasks", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  type: taskTypeEnum("task_type").notNull(),
-  dificulty: taskDificultyEnum("task_dificulty").notNull(),
-  status: taskStatusEnum("task_status").notNull(),
-  subject: tasksubjectEnum("task_subject").notNull(),
-  user_id: varchar({ length: 255 }),
-  student_email: varchar({ length: 255 }),
-  title: varchar({ length: 255 }).notNull(),
-  theme: varchar({ length: 255 }),
-  description: text().notNull(),
-  estimated_minutes: integer().notNull(),
-  due_date: date("due_date").notNull(),
-  created_at: timestamp("created_at").defaultNow().notNull(),
-  updated_at: timestamp("updated_at").$onUpdate(() => new Date()),
-  completed_at: timestamp("completed_at"), // unused; drop in the cleanup migration with the email columns
-});
+export const tarefaTable = pgTable(
+  "tasks",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    type: taskTypeEnum("task_type").notNull(),
+    dificulty: taskDificultyEnum("task_dificulty").notNull(),
+    status: taskStatusEnum("task_status").notNull(),
+    subject: tasksubjectEnum("task_subject").notNull(),
+    user_id: varchar({ length: 255 }),
+    student_email: varchar({ length: 255 }),
+    title: varchar({ length: 255 }).notNull(),
+    theme: varchar({ length: 255 }),
+    description: text().notNull(),
+    estimated_minutes: integer().notNull(),
+    due_date: date("due_date").notNull(),
+    created_at: timestamp("created_at").defaultNow().notNull(),
+    updated_at: timestamp("updated_at").$onUpdate(() => new Date()),
+    completed_at: timestamp("completed_at"), // unused; drop in the cleanup migration with the email columns
+  },
+  (t) => [index().on(t.user_id)],
+);
 
-export const agendamentoTable = pgTable("schedules", {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  user_id: varchar({ length: 255 }),
-  email: varchar({ length: 255 }),
-  recomentation_id: integer().references(() => recomendacaoTable.id, {
-    onDelete: "cascade",
-  }),
-  start_time: timestamp({ mode: "string", precision: 0 }).notNull(),
-  end_time: timestamp({ mode: "string", precision: 0 }).notNull(),
-  reason: text().notNull(),
-});
+export const agendamentoTable = pgTable(
+  "schedules",
+  {
+    id: integer().primaryKey().generatedAlwaysAsIdentity(),
+    user_id: varchar({ length: 255 }),
+    email: varchar({ length: 255 }),
+    recomentation_id: integer().references(() => recomendacaoTable.id, {
+      onDelete: "cascade",
+    }),
+    start_time: timestamp({ mode: "string", precision: 0 }).notNull(),
+    end_time: timestamp({ mode: "string", precision: 0 }).notNull(),
+    reason: text().notNull(),
+  },
+  // Agenda and planner read one user's upcoming sessions; past rows are kept forever.
+  (t) => [index().on(t.user_id, t.end_time)],
+);
 
 export const recomendacaoTable = pgTable("recommendations", {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),

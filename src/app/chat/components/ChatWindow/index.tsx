@@ -83,8 +83,11 @@ export default function ChatWindow() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // The server takes at most 20 messages; older ones drop out of the context.
-        body: JSON.stringify({ messages: nextMessages.slice(-20) }),
+        // The server takes at most 20 non-empty messages; an answer that failed before any text
+        // stays on screen empty but is not resent. Older messages drop out of the context.
+        body: JSON.stringify({
+          messages: nextMessages.filter((m) => m.content).slice(-20),
+        }),
       });
 
       if (!response.ok || !response.body) {

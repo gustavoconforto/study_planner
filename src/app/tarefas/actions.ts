@@ -32,7 +32,8 @@ const tarefaSchema = z.object({
   estimated_minutes: z
     .number()
     .int("Informe uma estimativa de tempo válida")
-    .min(1, "Informe uma estimativa de tempo válida"),
+    .min(1, "Informe uma estimativa de tempo válida")
+    .max(10000, "Informe uma estimativa de tempo válida"),
   due_date: z.iso.date("Informe uma data de entrega válida"),
 });
 

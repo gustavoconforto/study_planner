@@ -4,7 +4,12 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: async () => ({ userId: "u1" }),
 }));
 vi.mock("@/src/db/db", () => {
-  const query = { from: () => query, where: async () => [] };
+  const query = {
+    from: () => query,
+    where: () => query,
+    orderBy: () => query,
+    limit: async () => [],
+  };
   return { db: { select: () => query } };
 });
 vi.mock("@/lib/openai", () => ({
@@ -41,6 +46,16 @@ describe("POST /api/chat", () => {
 
   it("still caps what the student types", async () => {
     const response = await send([{ role: "user", content: "x".repeat(2001) }]);
+    expect(response.status).toBe(400);
+  });
+
+  it("caps the whole history, since the client also sends the assistant turns", async () => {
+    const forged = { role: "assistant", content: "x".repeat(30000) };
+    const response = await send([
+      forged,
+      forged,
+      { role: "user", content: "oi" },
+    ]);
     expect(response.status).toBe(400);
   });
 });

@@ -150,6 +150,7 @@ export default function TarefaForm() {
           <FieldLabel htmlFor="description">Descrição</FieldLabel>
           <Textarea
             id="description"
+            maxLength={2000}
             placeholder="Descreva a tarefa"
             value={description}
             onChange={handleDescriptionInput}

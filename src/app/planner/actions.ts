@@ -1,6 +1,6 @@
 "use server";
 import { db } from "@/src/db/db";
-import { eq, and, gte, inArray, notInArray } from "drizzle-orm";
+import { eq, and, or, gte, inArray, isNull, notInArray } from "drizzle-orm";
 import {
   tarefaTable,
   disponibilidadeTable,
@@ -245,10 +245,23 @@ export async function generatePlan(): Promise<
         endTime: agendamentoTable.end_time,
       })
       .from(agendamentoTable)
+      .leftJoin(
+        recomendacaoTable,
+        eq(agendamentoTable.recomentation_id, recomendacaoTable.id),
+      )
       .where(
         and(
           eq(agendamentoTable.user_id, user_id),
           gte(agendamentoTable.end_time, `${windows[0].date} 00:00:00`),
+          // Sessions of the tasks being planned again are replaced below, so they don't block slots.
+          // isNull: rows from before task_id existed (NOT IN against NULL would drop them).
+          or(
+            isNull(recomendacaoTable.task_id),
+            notInArray(
+              recomendacaoTable.task_id,
+              tasks.map((t) => t.id),
+            ),
+          ),
         ),
       );
 
@@ -284,6 +297,18 @@ export async function generatePlan(): Promise<
       })),
     );
 
+    // Tasks the AI could not fit go back to the queue for the next run.
+    const unplanned = tasks
+      .map((t) => t.id)
+      .filter((id) => !recommendationIdByTask.has(id));
+    if (unplanned.length > 0) {
+      await db
+        .update(tarefaTable)
+        .set({ status: "CADASTRADO" })
+        .where(inArray(tarefaTable.id, unplanned));
+    }
+
+    // Last write on purpose: if anything above fails, the catch removes the new plan and the old one survives.
     // A task planned again replaces its old plan (old sessions go with it via cascade).
     await db
       .delete(recomendacaoTable)
@@ -296,17 +321,6 @@ export async function generatePlan(): Promise<
           notInArray(recomendacaoTable.id, savedRecommendationIds),
         ),
       );
-
-    // Tasks the AI could not fit go back to the queue for the next run.
-    const unplanned = tasks
-      .map((t) => t.id)
-      .filter((id) => !recommendationIdByTask.has(id));
-    if (unplanned.length > 0) {
-      await db
-        .update(tarefaTable)
-        .set({ status: "CADASTRADO" })
-        .where(inArray(tarefaTable.id, unplanned));
-    }
 
     return {
       ok: true,

@@ -24,7 +24,11 @@ const tarefaSchema = z.object({
     .string()
     .min(1, "Informe um título")
     .max(255, "O título deve ter no máximo 255 caracteres"),
-  description: z.string().min(1, "Informe uma descrição"),
+  // Every chat message and plan resends all descriptions to OpenAI, so this caps their cost.
+  description: z
+    .string()
+    .min(1, "Informe uma descrição")
+    .max(2000, "A descrição deve ter no máximo 2000 caracteres"),
   estimated_minutes: z
     .number()
     .int("Informe uma estimativa de tempo válida")

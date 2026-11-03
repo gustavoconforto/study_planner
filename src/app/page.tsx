@@ -1,7 +1,8 @@
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import { RiCalendarLine, RiTaskLine, RiLineChartLine } from "@remixicon/react";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 import Header from "@/src/app/layout/PageHeader";
 import Footer from "@/src/app/layout/Footer";
 
@@ -90,15 +91,18 @@ export default async function Home() {
                   Crie sua agenda em poucos minutos.
                 </p>
               </div>
-              <Button variant="destructive" size="lg">
+              <Link
+                href="/disponibilidade"
+                className={buttonVariants({ variant: "destructive", size: "lg" })}
+              >
                 Começar agora
-              </Button>
+              </Link>
             </div>
           </div>
         </div>
 
         <div>
-          <div className="flex flex-col gap-5 px-4">
+          <div id="como-funciona" className="flex flex-col gap-5 px-4">
             <h3 className="text-xl font-semibold">Como funciona</h3>
             <ol className="flex flex-col gap-5">
               {steps.map((step, index) => (

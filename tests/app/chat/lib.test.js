@@ -82,5 +82,10 @@ describe("chat/lib.test.js", () => {
         1, 25000, 1, 25000, 1,
       ]);
     });
+
+    it("cuts an answer longer than the server accepts", () => {
+      const result = fitHistory([answer("x".repeat(35000)), user("e agora?")]);
+      expect(result.map((m) => m.content.length)).toEqual([30000, 8]);
+    });
   });
 });

@@ -7,6 +7,7 @@ import { tarefaTable } from "@/src/db/schema";
 import { localNow } from "@/utils/data";
 import {
   buildChatInstructions,
+  MAX_ASSISTANT_CHARS,
   MAX_HISTORY_CHARS,
   MAX_MESSAGES,
   MAX_USER_CHARS,
@@ -25,7 +26,7 @@ const chatRequestSchema = z.object({
         }),
         z.object({
           role: z.literal("assistant"),
-          content: z.string().min(1).max(30000),
+          content: z.string().min(1).max(MAX_ASSISTANT_CHARS),
         }),
       ]),
     )

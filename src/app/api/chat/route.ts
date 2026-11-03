@@ -7,15 +7,22 @@ import { tarefaTable } from "@/src/db/schema";
 import { localNow } from "@/utils/data";
 import { buildChatInstructions } from "@/src/app/chat/lib";
 
-// Caps what one request can cost on OpenAI.
+// Caps what one request can cost on OpenAI. Assistant turns are our own earlier answers
+// (up to 8000 output tokens), so they get a larger limit than what the student types.
 // shortcut: no per-user request rate limit; add one (stored in the DB) if abuse shows up.
 const chatRequestSchema = z.object({
   messages: z
     .array(
-      z.object({
-        role: z.enum(["user", "assistant"]),
-        content: z.string().min(1).max(2000),
-      }),
+      z.discriminatedUnion("role", [
+        z.object({
+          role: z.literal("user"),
+          content: z.string().min(1).max(2000),
+        }),
+        z.object({
+          role: z.literal("assistant"),
+          content: z.string().min(1).max(30000),
+        }),
+      ]),
     )
     .min(1)
     .max(20),

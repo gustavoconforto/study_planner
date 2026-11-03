@@ -83,7 +83,8 @@ export default function ChatWindow() {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: nextMessages }),
+        // The server takes at most 20 messages; older ones drop out of the context.
+        body: JSON.stringify({ messages: nextMessages.slice(-20) }),
       });
 
       if (!response.ok || !response.body) {

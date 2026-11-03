@@ -20,7 +20,7 @@ function formatTime(value: string) {
   });
 }
 
-function TaskList({ title, items }: { title: string; items?: string[] }) {
+export function TaskList({ title, items }: { title: string; items?: string[] }) {
   if (!items || items.length === 0) return null;
   return (
     <div>

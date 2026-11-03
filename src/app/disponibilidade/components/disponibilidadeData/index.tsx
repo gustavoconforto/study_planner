@@ -28,7 +28,7 @@ export default async function DisponibilidadeData() {
               key={day.value}
               className="bg-background px-2 py-2 text-center text-sm font-medium"
             >
-              {getWeekDayName(day.value)}
+              {day.label}
             </div>
           ))}
           {weekDays.map((day) => {

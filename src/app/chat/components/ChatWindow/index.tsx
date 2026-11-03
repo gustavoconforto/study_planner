@@ -10,7 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { normalizeMathDelimiters } from "@/src/app/chat/lib";
+import {
+  fitHistory,
+  MAX_USER_CHARS,
+  normalizeMathDelimiters,
+} from "@/src/app/chat/lib";
 
 const markdownComponents = {
   p: ({ ...props }) => <p className="mb-2 last:mb-0" {...props} />,
@@ -78,21 +82,19 @@ export default function ChatWindow() {
     setError(null);
     setIsStreaming(true);
     scrollToBottom();
+    let answered = false;
 
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // The server takes at most 20 non-empty messages; an answer that failed before any text
-        // stays on screen empty but is not resent. Older messages drop out of the context.
-        body: JSON.stringify({
-          messages: nextMessages.filter((m) => m.content).slice(-20),
-        }),
+        body: JSON.stringify({ messages: fitHistory(nextMessages) }),
       });
 
       if (!response.ok || !response.body) {
         throw new Error("Falha ao consultar o assistente");
       }
+      answered = true;
 
       setMessages((current) => [
         ...current,
@@ -119,6 +121,11 @@ export default function ChatWindow() {
         scrollToBottom();
       }
     } catch {
+      // Not answered: take the message back out of the history (so it is never resent) and into the box.
+      if (!answered) {
+        setMessages(messages);
+        setInput(content);
+      }
       setError("Não foi possível obter uma resposta. Tente novamente.");
     } finally {
       setIsStreaming(false);
@@ -185,6 +192,7 @@ export default function ChatWindow() {
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder="Digite sua dúvida..."
+          maxLength={MAX_USER_CHARS}
           disabled={isStreaming}
           className="min-h-12"
         />

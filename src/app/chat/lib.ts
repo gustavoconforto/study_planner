@@ -1,3 +1,21 @@
+// Limits the server enforces on each chat request (src/app/api/chat/route.ts); the client trims to fit them.
+export const MAX_USER_CHARS = 2000;
+export const MAX_MESSAGES = 20;
+export const MAX_HISTORY_CHARS = 60000;
+
+type ChatMessage = { role: "user" | "assistant"; content: string };
+
+// What the client sends: no empty answers (a reply that failed before any text), the last
+// MAX_MESSAGES, and the oldest dropped until the total fits MAX_HISTORY_CHARS.
+export function fitHistory<T extends ChatMessage>(messages: T[]): T[] {
+  const fitted = messages.filter((m) => m.content).slice(-MAX_MESSAGES);
+  let total = fitted.reduce((sum, m) => sum + m.content.length, 0);
+  while (total > MAX_HISTORY_CHARS && fitted.length > 1) {
+    total -= fitted.shift()!.content.length;
+  }
+  return fitted;
+}
+
 type ChatContextTask = {
   subject: string;
   title: string;
@@ -35,5 +53,8 @@ export function normalizeMathDelimiters(content: string): string {
       /\\\[([\s\S]*?)\\\]/g,
       (_match, expr: string) => `\n\n$$\n${expr.trim()}\n$$\n\n`,
     )
-    .replace(/\\\(([\s\S]*?)\\\)/g, (_match, expr: string) => `$${expr.trim()}$`);
+    .replace(
+      /\\\(([\s\S]*?)\\\)/g,
+      (_match, expr: string) => `$${expr.trim()}$`,
+    );
 }

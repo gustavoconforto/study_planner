@@ -1,5 +1,9 @@
 import { expect, it, describe } from "vitest";
-import { buildChatInstructions, normalizeMathDelimiters } from "@/src/app/chat/lib";
+import {
+  buildChatInstructions,
+  fitHistory,
+  normalizeMathDelimiters,
+} from "@/src/app/chat/lib";
 
 describe("chat/lib.test.js", () => {
   describe("buildChatInstructions", () => {
@@ -47,6 +51,36 @@ describe("chat/lib.test.js", () => {
     it("Should leave text without LaTeX delimiters untouched", () => {
       const result = normalizeMathDelimiters("Nenhuma fórmula aqui.");
       expect(result).toBe("Nenhuma fórmula aqui.");
+    });
+  });
+
+  describe("fitHistory", () => {
+    const user = (content) => ({ role: "user", content });
+    const answer = (content) => ({ role: "assistant", content });
+
+    it("drops empty answers and keeps the last 20 messages", () => {
+      const messages = Array.from({ length: 25 }, (_, i) => user(`m${i}`));
+      messages.splice(24, 0, answer(""));
+      const result = fitHistory(messages);
+      expect(result).toHaveLength(20);
+      expect(result[0].content).toBe("m5");
+      expect(result.every((m) => m.content)).toBe(true);
+    });
+
+    it("drops the oldest messages until the history fits 60000 characters", () => {
+      const long = answer("x".repeat(25000));
+      const result = fitHistory([
+        user("a"),
+        long,
+        user("b"),
+        long,
+        user("c"),
+        long,
+        user("d"),
+      ]);
+      expect(result.map((m) => m.content.length)).toEqual([
+        1, 25000, 1, 25000, 1,
+      ]);
     });
   });
 });

@@ -5,7 +5,12 @@ import { openai } from "@/lib/openai";
 import { db } from "@/src/db/db";
 import { tarefaTable } from "@/src/db/schema";
 import { localNow } from "@/utils/data";
-import { buildChatInstructions } from "@/src/app/chat/lib";
+import {
+  buildChatInstructions,
+  MAX_HISTORY_CHARS,
+  MAX_MESSAGES,
+  MAX_USER_CHARS,
+} from "@/src/app/chat/lib";
 
 // Caps what one request can cost on OpenAI. Assistant turns are our own earlier answers
 // (up to 8000 output tokens), so they get a larger limit than what the student types.
@@ -16,7 +21,7 @@ const chatRequestSchema = z.object({
       z.discriminatedUnion("role", [
         z.object({
           role: z.literal("user"),
-          content: z.string().min(1).max(2000),
+          content: z.string().min(1).max(MAX_USER_CHARS),
         }),
         z.object({
           role: z.literal("assistant"),
@@ -25,11 +30,12 @@ const chatRequestSchema = z.object({
       ]),
     )
     .min(1)
-    .max(20)
+    .max(MAX_MESSAGES)
     // Assistant turns come from the client too, so cap the whole history, not just each message.
     .refine(
       (messages) =>
-        messages.reduce((total, m) => total + m.content.length, 0) <= 60000,
+        messages.reduce((total, m) => total + m.content.length, 0) <=
+        MAX_HISTORY_CHARS,
     ),
 });
 

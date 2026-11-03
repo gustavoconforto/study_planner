@@ -12,6 +12,7 @@ import { requireUserId } from "@/lib/auth";
 import {
   buildAvailabilityWindows,
   pickValidSessions,
+  pickRecommendations,
   type AvailabilityWindow,
   type PlannerResult,
 } from "./lib";
@@ -21,16 +22,13 @@ type Booked = { startTime: string; endTime: string };
 
 export async function countTasksToPlan() {
   const user_id = await requireUserId();
-  const tasks = await db
-    .select({ id: tarefaTable.id })
-    .from(tarefaTable)
-    .where(
-      and(
-        eq(tarefaTable.user_id, user_id),
-        eq(tarefaTable.status, "CADASTRADO"),
-      ),
-    );
-  return tasks.length;
+  return db.$count(
+    tarefaTable,
+    and(
+      eq(tarefaTable.user_id, user_id),
+      eq(tarefaTable.status, "CADASTRADO"),
+    ),
+  );
 }
 
 async function aiPlanner({
@@ -257,10 +255,9 @@ export async function generatePlan(): Promise<
     const plan = await aiPlanner({ tasks, windows, booked });
 
     const sessions = pickValidSessions(plan.sessions, windows, booked);
-    const recommendations = plan.summary.study_recommendations.filter(
-      (r, i, all) =>
-        sessions.some((s) => s.task_id === r.task_id) &&
-        all.findIndex((other) => other.task_id === r.task_id) === i,
+    const recommendations = pickRecommendations(
+      plan.summary.study_recommendations,
+      sessions,
     );
     if (recommendations.length === 0) throw new Error("No valid sessions");
 

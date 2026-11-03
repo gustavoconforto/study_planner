@@ -105,3 +105,15 @@ export function pickValidSessions(
 
   return valid;
 }
+
+// One recommendation per task, and only for tasks that kept at least one valid session.
+export function pickRecommendations(
+  recommendations: StudyRecommendation[],
+  sessions: Session[],
+) {
+  return recommendations.filter(
+    (r, i, all) =>
+      sessions.some((s) => s.task_id === r.task_id) &&
+      all.findIndex((other) => other.task_id === r.task_id) === i,
+  );
+}

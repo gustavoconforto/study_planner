@@ -55,7 +55,7 @@ export default function Navbar() {
       </div>
       <div className="px-4">
         <nav aria-label="Global" className="block md:hidden pb-4">
-          <ul className="flex fllex-col items-center gap-6 text-sm">
+          <ul className="flex items-center gap-6 text-sm">
             {menuItems.map((item) => {
               return (
                 <li key={item.href}>

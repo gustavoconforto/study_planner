@@ -39,7 +39,7 @@ export async function saveDisponibilidade(input: {
   }
   try {
     await db.insert(disponibilidadeTable).values({ ...parsed.data, user_id });
-    revalidatePath("disponibilidade");
+    revalidatePath("/disponibilidade");
     return { ok: true };
   } catch {
     return { ok: false, errors: {} };
@@ -66,7 +66,7 @@ export async function deleteDisponibilidade(id: number) {
           eq(disponibilidadeTable.user_id, user_id),
         ),
       );
-    revalidatePath("disponibilidade");
+    revalidatePath("/disponibilidade");
     return { ok: true };
   } catch {
     return { ok: false };

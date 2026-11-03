@@ -48,7 +48,7 @@ export async function saveTarefa(
     await db
       .insert(tarefaTable)
       .values({ ...parsed.data, user_id, status: "CADASTRADO" });
-    revalidatePath("tarefas");
+    revalidatePath("/tarefas");
     return { ok: true };
   } catch {
     return { ok: false, errors: {} };
@@ -74,7 +74,7 @@ export async function updateTarefaStatus(
       .update(tarefaTable)
       .set({ status })
       .where(and(eq(tarefaTable.id, id), eq(tarefaTable.user_id, user_id)));
-    revalidatePath("tarefas");
+    revalidatePath("/tarefas");
     return { ok: true };
   } catch {
     return { ok: false };
@@ -88,7 +88,7 @@ export async function deleteTarefa(id: number) {
     await db
       .delete(tarefaTable)
       .where(and(eq(tarefaTable.id, id), eq(tarefaTable.user_id, user_id)));
-    revalidatePath("tarefas");
+    revalidatePath("/tarefas");
     return { ok: true };
   } catch {
     return { ok: false };

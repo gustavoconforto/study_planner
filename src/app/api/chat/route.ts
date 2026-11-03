@@ -1,19 +1,24 @@
 import { auth } from "@clerk/nextjs/server";
 import { z } from "zod";
+import { and, eq, gte } from "drizzle-orm";
 import { openai } from "@/lib/openai";
-import { getTasksForChatContext } from "@/src/app/chat/actions";
+import { db } from "@/src/db/db";
+import { tarefaTable } from "@/src/db/schema";
+import { localNow } from "@/utils/data";
 import { buildChatInstructions } from "@/src/app/chat/lib";
 
+// Caps what one request can cost on OpenAI.
+// shortcut: no per-user request rate limit; add one (stored in the DB) if abuse shows up.
 const chatRequestSchema = z.object({
   messages: z
     .array(
       z.object({
         role: z.enum(["user", "assistant"]),
-        content: z.string().min(1).max(4000),
+        content: z.string().min(1).max(2000),
       }),
     )
     .min(1)
-    .max(50),
+    .max(20),
 });
 
 export async function POST(request: Request) {
@@ -29,13 +34,30 @@ export async function POST(request: Request) {
     return new Response("Bad Request", { status: 400 });
   }
 
-  const tasks = await getTasksForChatContext();
+  const tasks = await db
+    .select({
+      subject: tarefaTable.subject,
+      title: tarefaTable.title,
+      theme: tarefaTable.theme,
+      dificulty: tarefaTable.dificulty,
+      due_date: tarefaTable.due_date,
+      description: tarefaTable.description,
+    })
+    .from(tarefaTable)
+    .where(
+      and(
+        eq(tarefaTable.user_id, userId),
+        gte(tarefaTable.due_date, localNow().date),
+      ),
+    );
   const instructions = buildChatInstructions(tasks);
 
   const stream = await openai.responses.create({
     model: "gpt-5.6-terra",
     instructions,
     input: parsed.data.messages,
+    // Includes reasoning tokens, so keep room for a full answer.
+    max_output_tokens: 8000,
     stream: true,
   });
 

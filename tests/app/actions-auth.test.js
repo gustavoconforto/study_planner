@@ -23,7 +23,6 @@ const modules = {
   disponibilidade: () => import("@/src/app/disponibilidade/actions"),
   planner: () => import("@/src/app/planner/actions"),
   agenda: () => import("@/src/app/agenda/actions"),
-  chat: () => import("@/src/app/chat/actions"),
 };
 
 describe("server actions refuse callers who are not signed in", () => {

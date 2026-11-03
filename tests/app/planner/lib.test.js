@@ -2,7 +2,19 @@ import { describe, expect, it } from "vitest";
 import {
   buildAvailabilityWindows,
   pickValidSessions,
+  pickRecommendations,
 } from "@/src/app/planner/lib";
+
+describe("pickRecommendations", () => {
+  it("keeps the first recommendation per task, only for tasks with a session", () => {
+    const rec = (task_id, title) => ({ task_id, title });
+    const kept = pickRecommendations(
+      [rec(1, "first"), rec(1, "duplicate"), rec(2, "no session")],
+      [{ task_id: 1 }],
+    );
+    expect(kept).toEqual([rec(1, "first")]);
+  });
+});
 
 // 2026-11-03 is a Tuesday (weekday 2). 21:00 UTC = 18:00 in São Paulo.
 const now = new Date("2026-11-03T21:00:00Z");

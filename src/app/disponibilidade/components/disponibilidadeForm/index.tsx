@@ -23,8 +23,8 @@ import { weekDays } from "@/utils/data";
 
 export default function DisponibilidadeForm() {
   const [weekday, setWeekDay] = useState(10);
-  const [start, setStart] = useState("00:00:00");
-  const [finish, setFinish] = useState("00:00:00");
+  const [start, setStart] = useState("00:00");
+  const [finish, setFinish] = useState("00:00");
   const [errors, setErrors] = useState<DisponibilidadeErrors>({});
   const [isSaving, setIsSaving] = useState(false);
   const [feedback, setFeedback] = useState<{
@@ -55,8 +55,8 @@ export default function DisponibilidadeForm() {
           message: "Disponibilidade salva com sucesso!",
         });
         setWeekDay(10);
-        setStart("00:00:00");
-        setFinish("00:00:00");
+        setStart("00:00");
+        setFinish("00:00");
       } else if (Object.keys(response.errors).length === 0) {
         setFeedback({
           type: "error",

@@ -2,8 +2,9 @@
 
 import { db } from "@/src/db/db";
 import { agendamentoTable, recomendacaoTable } from "@/src/db/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, gte } from "drizzle-orm";
 import { requireUserId } from "@/lib/auth";
+import { localNow } from "@/utils/data";
 
 export async function getSchedules() {
   const user_id = await requireUserId();
@@ -11,7 +12,13 @@ export async function getSchedules() {
     const result = await db
       .select()
       .from(agendamentoTable)
-      .where(eq(agendamentoTable.user_id, user_id))
+      .where(
+        and(
+          eq(agendamentoTable.user_id, user_id),
+          // Only today and later; past sessions stay in the DB but are not shown.
+          gte(agendamentoTable.end_time, `${localNow().date} 00:00:00`),
+        ),
+      )
       .leftJoin(
         recomendacaoTable,
         eq(agendamentoTable.recomentation_id, recomendacaoTable.id),

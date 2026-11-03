@@ -59,6 +59,8 @@ export default function ChatWindow() {
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // A blocked message's reply (e.g. the CVV help line): shown calmly, not as a red error.
+  const [notice, setNotice] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   function handleInputChange(event: React.ChangeEvent<HTMLTextAreaElement>) {
@@ -80,6 +82,7 @@ export default function ChatWindow() {
     setMessages(nextMessages);
     setInput("");
     setError(null);
+    setNotice(null);
     setIsStreaming(true);
     scrollToBottom();
     let answered = false;
@@ -91,6 +94,12 @@ export default function ChatWindow() {
         body: JSON.stringify({ messages: fitHistory(nextMessages) }),
       });
 
+      if (response.status === 422) {
+        // Blocked by moderation: the server's reply explains why.
+        setMessages(messages);
+        setNotice(await response.text());
+        return;
+      }
       if (!response.ok || !response.body) {
         throw new Error("Falha ao consultar o assistente");
       }
@@ -185,6 +194,11 @@ export default function ChatWindow() {
       </Card>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
+      {notice && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {notice}
+        </p>
+      )}
 
       <div className="flex gap-2">
         <Textarea
